@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Persönliches Portal für Lehrlinge zur Verwaltung der MurtalTaxi-Fahrten." />
+    <meta name="theme-color" content="#0b806d" />
+    <meta name="color-scheme" content="light" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="canonical" href="https://taxi-vorbestellungen.vercel.app/student-portal/" />
+    <title>Lehrlinge Portal · MurtalTaxi</title>
+    <link rel="icon" href="../lehrlinge/assets/favicon/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../lehrlinge/assets/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="../lehrlinge/assets/favicon/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../lehrlinge/assets/favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="./site.webmanifest" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="MurtalTaxi" />
+    <meta property="og:locale" content="de_AT" />
+    <meta property="og:title" content="Lehrlinge Portal · MurtalTaxi" />
+    <meta property="og:description" content="Persönliches Portal für Lehrlinge zur Verwaltung der MurtalTaxi-Fahrten." />
+    <meta property="og:url" content="https://taxi-vorbestellungen.vercel.app/student-portal/" />
+    <meta property="og:image" content="https://taxi-vorbestellungen.vercel.app/lehrlinge/assets/favicon/android-chrome-512x512.png" />
+    <meta property="og:image:alt" content="MurtalTaxi Lehrlinge Portal" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Lehrlinge Portal · MurtalTaxi" />
+    <meta name="twitter:description" content="Persönliches Portal für Lehrlinge zur Verwaltung der MurtalTaxi-Fahrten." />
+    <meta name="twitter:image" content="https://taxi-vorbestellungen.vercel.app/lehrlinge/assets/favicon/android-chrome-512x512.png" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="portalBoot" class="portal-boot" role="status" aria-live="polite">
+      <div class="portal-boot__card">
+        <span class="portal-boot__spinner" aria-hidden="true"></span>
+        <strong>Willkommen zurück</strong>
+        <span id="portalBootText">Dein persönliches Portal wird geladen…</span>
+        <button id="portalBootRetry" class="ghost" type="button" hidden>Erneut versuchen</button>
+      </div>
+    </div>
+    <main class="shell">
+      <section id="loginView" class="login card">
+        <div class="eyebrow">MurtalTaxi · Lehrlinge Portal</div>
+        <h1>Deine Fahrten verwalten</h1>
+        <p class="muted">Melde dich mit deiner Lehrling-ID und deinem PIN an.</p>
+        <form id="loginForm">
+          <label for="studentIdInput">Lehrling-ID</label>
+          <input id="studentIdInput" type="text" placeholder="z. B. oliver" autocomplete="username" required />
+          <label for="pinInput">PIN</label>
+          <input id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="current-password" required />
+          <button class="primary" type="submit">Einloggen</button>
+        </form>
+        <p id="loginStatus" class="save-status" aria-live="polite"></p>
+        <a class="support-link ghost" href="https://wa.me/4368181289405" target="_blank" rel="noopener"><svg class="whatsapp-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8.2 7.8c.2-.4.5-.5.9-.5h.6c.2 0 .4.2.5.4l.7 1.7c.1.3.1.5-.1.7l-.5.7c.6 1 1.4 1.8 2.5 2.4l.7-.5c.2-.2.5-.2.7-.1l1.7.7c.3.1.4.3.4.5v.6c0 .4-.2.7-.5.9-.5.3-1.2.4-1.8.2-2.1-.6-4.8-3.2-5.6-5.3-.3-.8-.2-1.7.1-2.3Z"/></svg>Support</a>
+      </section>
+
+      <section id="portalView" hidden>
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">MurtalTaxi · Lehrlinge Portal</div>
+            <h1>Hallo, <span id="studentName">Oliver</span>!</h1>
+          </div>
+        </header>
+
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <h2>Meine Fahrten</h2>
+            </div>
+          </div>
+
+          <details class="period-details">
+            <summary>Zeitraum auswählen</summary>
+            <div class="period-controls">
+              <label>Von <input id="periodFrom" type="date" value="2026-09-14" /></label>
+              <label>Bis <input id="periodTo" type="date" value="2026-09-18" /></label>
+              <label class="past-toggle"><input id="showPast" type="checkbox" /> vergangene Tage anzeigen</label>
+              <button class="ghost period-btn" data-period="current" type="button">Diese Woche</button>
+              <button class="ghost period-btn" data-period="next" type="button">Nächste Woche</button>
+              <button class="ghost period-btn" data-period="four" type="button">4 Wochen</button>
+            </div>
+          </details>
+
+          <div id="tripList" class="trip-list"></div>
+          <div id="periodStatus" class="period-status" aria-live="polite" hidden>Daten werden geladen…</div>
+          <button id="saveTrips" class="primary small" type="button">Änderungen speichern</button>
+        </section>
+
+        <details class="info-details">
+          <summary>Route & Hinweise</summary>
+          <div class="info-content">
+            <div class="route-summary">
+              <strong id="studentRoute">—</strong>
+              <small id="studentTime" class="profile-time">—</small>
+              <span id="studentAddress">—</span>
+            </div>
+            <p class="trip-help muted">Vergangene Tage werden ausgeblendet. Änderungen sind morgens bis 03:00 und zurück bis 12:00 möglich.</p>
+            <div class="note-content">
+              <p class="muted">Hinweis an die Fahrer (optional)</p>
+              <textarea id="note" rows="3" placeholder="Zum Beispiel: Ab Mittwoch fahre ich morgens nicht mit."></textarea>
+              <button id="saveNote" class="primary small" type="button">Nachricht speichern</button>
+              <div id="saveStatus" class="save-status" aria-live="polite"></div>
+            </div>
+          </div>
+        </details>
+
+        <div class="portal-footer">
+          <a class="support-link ghost" href="https://wa.me/4368181289405" target="_blank" rel="noopener"><svg class="whatsapp-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8.2 7.8c.2-.4.5-.5.9-.5h.6c.2 0 .4.2.5.4l.7 1.7c.1.3.1.5-.1.7l-.5.7c.6 1 1.4 1.8 2.5 2.4l.7-.5c.2-.2.5-.2.7-.1l1.7.7c.3.1.4.3.4.5v.6c0 .4-.2.7-.5.9-.5.3-1.2.4-1.8.2-2.1-.6-.6-4.8-3.2-5.6-5.3-.3-.8-.2-1.7.1-2.3Z"/></svg>Support</a>
+          <button id="logoutBtn" class="ghost" type="button">Abmelden</button>
+        </div>
+      </section>
+    </main>
+    <div id="portalToast" class="portal-toast" role="status" aria-live="polite" hidden>
+      <div class="portal-toast__card">
+        <span class="portal-toast__icon" aria-hidden="true"></span>
+        <span id="portalToastText"></span>
+      </div>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>
