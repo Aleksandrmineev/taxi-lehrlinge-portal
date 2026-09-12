@@ -346,7 +346,7 @@ studentPinResetForm.addEventListener("submit", async (event) => {
       payload.pin = resetStudentPinInput.value;
     }
     const result = await apiPost(payload);
-    if (action === "student_pin_request") {
+    if (action === "student_pin_request" || action === "student_id_request") {
       resetStudentCodeInput.disabled = false;
       resetStudentPinInput.disabled = false;
       resetStudentCodeField.hidden = false;
