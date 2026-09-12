@@ -9,8 +9,12 @@
   const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
   if (isStandalone) return;
 
+  const installedKey = "mt:student-pwa-installed";
+  if (localStorage.getItem(installedKey) === "1") return;
+
   let deferredPrompt = null;
-  buttons.forEach((button) => { button.hidden = false; });
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  buttons.forEach((button) => { button.hidden = !isIOS; });
 
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
@@ -24,13 +28,17 @@
       return;
     }
     deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
+    const choice = await deferredPrompt.userChoice;
     deferredPrompt = null;
-    buttons.forEach((item) => { item.hidden = true; });
+    if (choice?.outcome === "accepted") {
+      localStorage.setItem(installedKey, "1");
+      buttons.forEach((item) => { item.hidden = true; });
+    }
   }));
 
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
+    localStorage.setItem(installedKey, "1");
     buttons.forEach((button) => { button.hidden = true; });
   });
 })();
