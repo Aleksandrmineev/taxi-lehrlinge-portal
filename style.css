@@ -76,7 +76,7 @@ body:has(.pin-reset-form:not([hidden]))::before { content: ""; position: fixed; 
 .support-link:hover { text-decoration: underline; }
 .auth-links { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 12px; }
 .auth-links .ghost { min-height: 42px; padding: 10px 14px; }
-.help-button { color: var(--muted); }
+.help-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
 .help-icon { width: 17px; height: 17px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .help-button:hover { border-color: var(--accent); color: var(--accent); background: var(--green); }
 .whatsapp-icon { width: 17px; height: 17px; flex: 0 0 auto; }
