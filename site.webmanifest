@@ -1,6 +1,7 @@
 {
   "name": "MurtalTaxi Lehrlinge Portal",
   "short_name": "Lehrlinge Portal",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

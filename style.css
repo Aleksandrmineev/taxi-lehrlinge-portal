@@ -79,6 +79,8 @@ body:has(.pin-reset-form:not([hidden]))::before { content: ""; position: fixed; 
 .help-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
 .help-icon { width: 17px; height: 17px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .help-button:hover { border-color: var(--accent); color: var(--accent); background: var(--green); }
+.install-app-button { color: var(--accent); }
+.install-app-button:hover { border-color: var(--accent); background: var(--green); }
 .whatsapp-icon { width: 17px; height: 17px; flex: 0 0 auto; }
 .whatsapp-icon circle { fill: #25d366; }
 .whatsapp-icon path { fill: #fff; }
