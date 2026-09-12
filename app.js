@@ -40,6 +40,9 @@ const resetStudentPinField = document.getElementById("resetStudentPinField");
 const resetStudentHint = document.getElementById("resetStudentHint");
 const resetStudentStatus = document.getElementById("resetStudentStatus");
 const showStudentIdRecovery = document.getElementById("showStudentIdRecovery");
+const helpDialog = document.getElementById("helpDialog");
+const showHelpButton = document.getElementById("showHelpButton");
+const closeHelpButton = document.getElementById("closeHelpButton");
 let portalToastTimer = null;
 let studentResetMode = "pin";
 
@@ -330,6 +333,8 @@ document.querySelectorAll("[data-period]").forEach((button) => {
 showResetStudentButton.addEventListener("click", openStudentPinReset);
 showStudentIdRecovery.addEventListener("click", openStudentIdRecovery);
 closeResetStudentButton.addEventListener("click", closeStudentPinReset);
+showHelpButton.addEventListener("click", () => helpDialog.showModal());
+closeHelpButton.addEventListener("click", () => helpDialog.close());
 
 studentPinResetForm.addEventListener("submit", async (event) => {
   event.preventDefault();
