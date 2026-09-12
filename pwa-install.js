@@ -10,6 +10,7 @@
   if (isStandalone) return;
 
   let deferredPrompt = null;
+  buttons.forEach((button) => { button.hidden = false; });
 
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
@@ -18,7 +19,10 @@
   });
 
   buttons.forEach((button) => button.addEventListener("click", async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      document.getElementById("showHelpButton")?.click();
+      return;
+    }
     deferredPrompt.prompt();
     await deferredPrompt.userChoice;
     deferredPrompt = null;

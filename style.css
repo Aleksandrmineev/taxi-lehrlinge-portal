@@ -48,7 +48,7 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px
 @keyframes portal-save-spin { to { transform: rotate(360deg); } }
 .primary.small { width: fit-content; margin-top: 8px; padding: 10px 14px; }
 .ghost { border: 1px solid var(--line); background: var(--card); color: var(--ink); }
-.reset-link { border: 1px solid var(--line); color: var(--accent); justify-self: start; }
+.reset-link { border: 1px solid var(--line); color: var(--accent); }
 .reset-link:hover { border-color: var(--accent); background: var(--green); }
 .reset-choice { border: 0; padding: 3px 0; background: transparent; color: var(--muted); font-size: 13px; text-align: left; }
 .reset-choice:hover { color: var(--accent); }
@@ -72,14 +72,18 @@ body:has(.pin-reset-form:not([hidden]))::before { content: ""; position: fixed; 
 .info-content { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255, 255, 255, .65); }
 .route-summary { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; color: var(--ink); }
 .route-summary span { grid-column: 1 / -1; color: var(--muted); font-size: 13px; }
-.support-link { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--accent); font-size: 13px; font-weight: 750; text-decoration: none; }
+.support-link { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--accent); font-size: 13px; font-weight: 800; text-decoration: none; }
 .support-link:hover { text-decoration: underline; }
-.auth-links { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 12px; }
-.auth-links .ghost { min-height: 42px; padding: 10px 14px; }
+.auth-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.auth-links > * { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 42px; padding: 10px 8px; border: 1px solid var(--line); border-radius: 12px; font-weight: 800; font-size: 13px; text-align: center; text-decoration: none; }
+.auth-links > *:hover { border-color: var(--accent); background: var(--green); }
+.auth-links .install-app-button { color: var(--accent); }
 .help-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
 .help-icon { width: 17px; height: 17px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .help-button:hover { border-color: var(--accent); color: var(--accent); background: var(--green); }
 .install-app-button { color: var(--accent); }
+.install-icon { width: 17px; height: 17px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.reset-link > span { display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; font-size: 18px; line-height: 1; }
 .install-app-button:hover { border-color: var(--accent); background: var(--green); }
 .whatsapp-icon { width: 17px; height: 17px; flex: 0 0 auto; }
 .whatsapp-icon circle { fill: #25d366; }
