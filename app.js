@@ -34,6 +34,7 @@ const resetStudentPinInput = document.getElementById("resetStudentPinInput");
 const resetStudentCodeField = document.getElementById("resetStudentCodeField");
 const resetStudentPinField = document.getElementById("resetStudentPinField");
 const resetStudentHint = document.getElementById("resetStudentHint");
+const resetStudentStatus = document.getElementById("resetStudentStatus");
 let portalToastTimer = null;
 
 function showPortalToast(message, type = "success", duration = 2600) {
@@ -57,6 +58,8 @@ function openStudentPinReset() {
   resetStudentCodeField.hidden = true;
   resetStudentPinField.hidden = true;
   resetStudentButton.textContent = "SMS-Code anfordern";
+  resetStudentStatus.textContent = "";
+  resetStudentStatus.className = "reset-status";
   resetStudentHint.textContent = "Zuerst SMS-Code anfordern. Danach Code und neuen PIN eingeben.";
   resetStudentIdInput.focus();
 }
@@ -65,6 +68,7 @@ function closeStudentPinReset() {
   studentPinResetForm.hidden = true;
   document.getElementById("loginForm").hidden = false;
   showResetStudentButton.hidden = false;
+  resetStudentStatus.textContent = "";
 }
 const periodFrom = document.getElementById("periodFrom");
 const periodTo = document.getElementById("periodTo");
@@ -317,7 +321,10 @@ studentPinResetForm.addEventListener("submit", async (event) => {
       resetStudentPinField.hidden = false;
       resetStudentButton.textContent = "PIN ersetzen";
       resetStudentHint.textContent = "SMS-Code eingeben und neuen PIN festlegen.";
-      showPortalToast("SMS-Code wurde an " + (result.maskedPhone || "die hinterlegte Nummer") + " gesendet.", "success");
+      const sentMessage = "SMS-Code wurde an " + (result.maskedPhone || "die hinterlegte Nummer") + " gesendet.";
+      resetStudentStatus.textContent = sentMessage;
+      resetStudentStatus.className = "reset-status is-success";
+      showPortalToast(sentMessage, "success");
       resetStudentCodeInput.focus();
     } else {
       state.token = result.token;
@@ -328,6 +335,8 @@ studentPinResetForm.addEventListener("submit", async (event) => {
       loginView.hidden = true;
       portalView.hidden = false;
       renderTrips();
+      resetStudentStatus.textContent = "PIN wurde erfolgreich ersetzt.";
+      resetStudentStatus.className = "reset-status is-success";
       showPortalToast("PIN wurde erfolgreich ersetzt.", "success");
     }
   } catch (error) {
@@ -340,7 +349,10 @@ studentPinResetForm.addEventListener("submit", async (event) => {
       reset_code_expired: "Der SMS-Code ist abgelaufen. Bitte einen neuen Code anfordern.",
       reset_code_locked: "Zu viele falsche Versuche. Bitte einen neuen Code anfordern.",
     };
-    showPortalToast(messages[code] || "Wiederherstellung nicht möglich: " + code, "error", 4500);
+    const errorMessage = messages[code] || "Wiederherstellung nicht möglich: " + code;
+    resetStudentStatus.textContent = errorMessage;
+    resetStudentStatus.className = "reset-status is-error";
+    showPortalToast(errorMessage, "error", 4500);
   } finally {
     resetStudentButton.disabled = false;
     resetStudentButton.classList.remove("is-saving");

@@ -48,11 +48,19 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px
 @keyframes portal-save-spin { to { transform: rotate(360deg); } }
 .primary.small { width: fit-content; margin-top: 8px; padding: 10px 14px; }
 .ghost { border: 1px solid var(--line); background: var(--card); color: var(--ink); }
-.reset-link { border: 0; padding: 4px 0; background: transparent; color: var(--muted); font-size: 13px; justify-self: start; }
-.reset-link:hover { color: var(--accent); }
-.pin-reset-form { margin-top: 14px; }
+.reset-link { border: 1px solid var(--line); color: var(--accent); justify-self: start; }
+.reset-link:hover { border-color: var(--accent); background: var(--green); }
+body:has(.pin-reset-form:not([hidden]))::before { content: ""; position: fixed; z-index: 1199; inset: 0; background: rgba(24, 34, 45, .38); }
+.pin-reset-form { position: fixed; z-index: 1200; left: 50%; top: 50%; width: min(440px, calc(100% - 32px)); transform: translate(-50%, -50%); display: grid; gap: 10px; margin: 0; padding: 26px; border: 1px solid var(--line); border-radius: 22px; background: var(--card); box-shadow: 0 24px 80px rgba(20, 47, 66, .25); }
+.pin-reset-form::before { content: "PIN wiederherstellen"; color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.pin-reset-form[hidden] { display: none; }
+.pin-reset-close { position: absolute; top: 9px; right: 11px; border: 0; background: transparent; color: var(--muted); font-size: 27px; line-height: 1; padding: 2px 7px; }
+.pin-reset-close:hover { color: var(--ink); }
 .pin-reset-form > div[hidden] { display: none; }
 .reset-hint { font-size: 12px; margin: 0; }
+.reset-status { min-height: 20px; margin: 0; font-size: 13px; font-weight: 750; }
+.reset-status.is-success { color: #12694f; }
+.reset-status.is-error { color: #a43b49; }
 .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 18px; }
 .topbar h1 { margin: 5px 0 0; }
 .profile-time { color: var(--muted); font-size: 12px; }

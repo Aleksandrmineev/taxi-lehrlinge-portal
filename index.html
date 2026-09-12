@@ -48,10 +48,11 @@
           <label for="pinInput">PIN</label>
           <input id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="current-password" required />
           <button class="primary" type="submit">Einloggen</button>
+          <button id="showResetStudentButton" class="ghost reset-link" type="button">PIN vergessen?</button>
         </form>
         <p id="loginStatus" class="save-status" aria-live="polite"></p>
-        <button id="showResetStudentButton" class="ghost reset-link" type="button">PIN vergessen?</button>
         <form id="studentPinResetForm" class="pin-reset-form" hidden>
+          <button id="closeResetStudentButton" class="pin-reset-close" type="button" aria-label="Schließen">×</button>
           <label for="resetStudentIdInput">Lehrling-ID</label>
           <input id="resetStudentIdInput" type="text" autocomplete="username" required />
           <p class="muted reset-hint">Der SMS-Code wird an deine hinterlegte Telefonnummer gesendet.</p>
@@ -64,7 +65,7 @@
             <input id="resetStudentPinInput" type="password" inputmode="numeric" autocomplete="new-password" minlength="4" maxlength="4" pattern="[0-9]{4}" disabled required />
           </div>
           <button id="resetStudentButton" class="primary" type="submit">SMS-Code anfordern</button>
-          <button id="closeResetStudentButton" class="ghost" type="button">Zurück</button>
+          <p id="resetStudentStatus" class="reset-status" aria-live="polite"></p>
           <p id="resetStudentHint" class="muted reset-hint">Zuerst SMS-Code anfordern. Danach Code und neuen PIN eingeben.</p>
           <p class="muted reset-hint">Telefonnummer ändern? Bitte Support kontaktieren.</p>
         </form>
