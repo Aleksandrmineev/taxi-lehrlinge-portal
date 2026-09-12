@@ -370,9 +370,8 @@ studentPinResetForm.addEventListener("submit", async (event) => {
       showPortalToast(sentMessage, "success");
       resetStudentCodeInput.focus();
     } else {
-      state.token = result.token;
-      state.studentId = result.studentId;
-      localStorage.setItem("lehrlinge_student_token", state.token);
+      const recoveredStudentId = resetStudentIdInput.value.trim().toLowerCase();
+      await loginStudent(recoveredStudentId, resetStudentPinInput.value);
       await loadStudentPlan();
       studentPinResetForm.hidden = true;
       loginView.hidden = true;
