@@ -368,7 +368,8 @@ studentPinResetForm.addEventListener("submit", async (event) => {
       resetStudentStatus.textContent = sentMessage;
       resetStudentStatus.className = "reset-status is-success";
       showPortalToast(sentMessage, "success");
-      resetStudentCodeInput.focus();
+      if (studentResetMode === "id") resetStudentIdInput.focus();
+      else resetStudentCodeInput.focus();
     } else {
       const recoveredStudentId = resetStudentIdInput.value.trim().toLowerCase();
       await loginStudent(recoveredStudentId, resetStudentPinInput.value);
