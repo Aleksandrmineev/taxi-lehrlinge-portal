@@ -19,6 +19,7 @@ const loginStatus = document.getElementById("loginStatus");
 const studentIdInput = document.getElementById("studentIdInput");
 const pinInput = document.getElementById("pinInput");
 const saveTrips = document.getElementById("saveTrips");
+const loginStudentButton = document.getElementById("loginStudentButton");
 const portalBoot = document.getElementById("portalBoot");
 const portalBootText = document.getElementById("portalBootText");
 const portalBootRetry = document.getElementById("portalBootRetry");
@@ -405,6 +406,9 @@ studentPinResetForm.addEventListener("submit", async (event) => {
 
 document.getElementById("loginForm").addEventListener("submit", async (event) => {
   event.preventDefault();
+  loginStudentButton.disabled = true;
+  loginStudentButton.classList.add("is-saving");
+  loginStudentButton.textContent = "Anmeldung…";
   loginStatus.textContent = "Anmeldung wird geprüft…";
   try {
     await loginStudent(studentIdInput.value.trim(), pinInput.value.trim());
@@ -415,6 +419,10 @@ document.getElementById("loginForm").addEventListener("submit", async (event) =>
     loginStatus.textContent = "";
   } catch (error) {
     loginStatus.textContent = "Anmeldung fehlgeschlagen. Bitte ID und PIN prüfen.";
+  } finally {
+    loginStudentButton.disabled = false;
+    loginStudentButton.classList.remove("is-saving");
+    loginStudentButton.textContent = "Einloggen";
   }
 });
 
