@@ -424,6 +424,8 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
   }
   portalView.hidden = true;
   loginView.hidden = false;
+  studentPinResetForm.hidden = true;
+  showResetStudentButton.hidden = false;
   state.token = "";
   localStorage.removeItem("lehrlinge_student_token");
   studentIdInput.value = "";
