@@ -53,8 +53,14 @@
         <p id="loginStatus" class="save-status" aria-live="polite"></p>
         <form id="studentPinResetForm" class="pin-reset-form" hidden>
           <button id="closeResetStudentButton" class="pin-reset-close" type="button" aria-label="Schließen">×</button>
-          <label for="resetStudentIdInput">Lehrling-ID</label>
-          <input id="resetStudentIdInput" type="text" autocomplete="username" required />
+          <div id="resetStudentIdField">
+            <label for="resetStudentIdInput">Lehrling-ID</label>
+            <input id="resetStudentIdInput" type="text" autocomplete="username" required />
+          </div>
+          <div id="resetStudentPhoneField" hidden>
+            <label for="resetStudentPhoneInput">Telefon</label>
+            <input id="resetStudentPhoneInput" type="tel" inputmode="tel" autocomplete="tel" placeholder="+43 …" disabled required />
+          </div>
           <p class="muted reset-hint">Der SMS-Code wird an deine hinterlegte Telefonnummer gesendet.</p>
           <div id="resetStudentCodeField" hidden>
             <label for="resetStudentCodeInput">SMS-Code</label>
@@ -65,6 +71,7 @@
             <input id="resetStudentPinInput" type="password" inputmode="numeric" autocomplete="new-password" minlength="4" maxlength="4" pattern="[0-9]{4}" disabled required />
           </div>
           <button id="resetStudentButton" class="primary" type="submit">SMS-Code anfordern</button>
+          <button id="showStudentIdRecovery" class="reset-choice" type="button">ID vergessen?</button>
           <p id="resetStudentStatus" class="reset-status" aria-live="polite"></p>
           <p id="resetStudentHint" class="muted reset-hint">Zuerst SMS-Code anfordern. Danach Code und neuen PIN eingeben.</p>
           <p class="muted reset-hint">Telefonnummer ändern? Bitte Support kontaktieren.</p>

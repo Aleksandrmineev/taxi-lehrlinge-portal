@@ -29,13 +29,18 @@ const studentPinResetForm = document.getElementById("studentPinResetForm");
 const closeResetStudentButton = document.getElementById("closeResetStudentButton");
 const resetStudentButton = document.getElementById("resetStudentButton");
 const resetStudentIdInput = document.getElementById("resetStudentIdInput");
+const resetStudentIdField = document.getElementById("resetStudentIdField");
+const resetStudentPhoneInput = document.getElementById("resetStudentPhoneInput");
+const resetStudentPhoneField = document.getElementById("resetStudentPhoneField");
 const resetStudentCodeInput = document.getElementById("resetStudentCodeInput");
 const resetStudentPinInput = document.getElementById("resetStudentPinInput");
 const resetStudentCodeField = document.getElementById("resetStudentCodeField");
 const resetStudentPinField = document.getElementById("resetStudentPinField");
 const resetStudentHint = document.getElementById("resetStudentHint");
 const resetStudentStatus = document.getElementById("resetStudentStatus");
+const showStudentIdRecovery = document.getElementById("showStudentIdRecovery");
 let portalToastTimer = null;
+let studentResetMode = "pin";
 
 function showPortalToast(message, type = "success", duration = 2600) {
   if (!portalToast || !portalToastText) return;
@@ -47,10 +52,15 @@ function showPortalToast(message, type = "success", duration = 2600) {
 }
 
 function openStudentPinReset() {
+  studentResetMode = "pin";
   document.getElementById("loginForm").hidden = true;
   showResetStudentButton.hidden = true;
   studentPinResetForm.hidden = false;
   resetStudentIdInput.value = studentIdInput.value.trim().toLowerCase();
+  resetStudentIdField.hidden = false;
+  resetStudentIdInput.disabled = false;
+  resetStudentPhoneField.hidden = true;
+  resetStudentPhoneInput.disabled = true;
   resetStudentCodeInput.value = "";
   resetStudentPinInput.value = "";
   resetStudentCodeInput.disabled = true;
@@ -60,8 +70,27 @@ function openStudentPinReset() {
   resetStudentButton.textContent = "SMS-Code anfordern";
   resetStudentStatus.textContent = "";
   resetStudentStatus.className = "reset-status";
+  showStudentIdRecovery.hidden = false;
   resetStudentHint.textContent = "Zuerst SMS-Code anfordern. Danach Code und neuen PIN eingeben.";
   resetStudentIdInput.focus();
+}
+
+function openStudentIdRecovery() {
+  studentResetMode = "id";
+  resetStudentIdField.hidden = true;
+  resetStudentIdInput.disabled = true;
+  resetStudentPhoneField.hidden = false;
+  resetStudentPhoneInput.disabled = false;
+  resetStudentPhoneInput.value = "";
+  resetStudentCodeInput.disabled = true;
+  resetStudentPinInput.disabled = true;
+  resetStudentCodeField.hidden = true;
+  resetStudentPinField.hidden = true;
+  resetStudentButton.textContent = "SMS-Code anfordern";
+  resetStudentStatus.textContent = "";
+  resetStudentHint.textContent = "Die SMS enthält deine Lehrling-ID und den SMS-Code.";
+  showStudentIdRecovery.hidden = true;
+  resetStudentPhoneInput.focus();
 }
 
 function closeStudentPinReset() {
@@ -69,6 +98,8 @@ function closeStudentPinReset() {
   document.getElementById("loginForm").hidden = false;
   showResetStudentButton.hidden = false;
   resetStudentStatus.textContent = "";
+  resetStudentIdInput.disabled = false;
+  resetStudentPhoneInput.disabled = true;
 }
 const periodFrom = document.getElementById("periodFrom");
 const periodTo = document.getElementById("periodTo");
@@ -296,6 +327,7 @@ document.querySelectorAll("[data-period]").forEach((button) => {
 });
 
 showResetStudentButton.addEventListener("click", openStudentPinReset);
+showStudentIdRecovery.addEventListener("click", openStudentIdRecovery);
 closeResetStudentButton.addEventListener("click", closeStudentPinReset);
 
 studentPinResetForm.addEventListener("submit", async (event) => {
@@ -304,12 +336,12 @@ studentPinResetForm.addEventListener("submit", async (event) => {
   resetStudentButton.disabled = true;
   resetStudentButton.classList.add("is-saving");
   try {
-    const action = resetStudentCodeInput.disabled ? "student_pin_request" : "student_pin_reset";
-    const payload = {
-      action,
-      studentId: resetStudentIdInput.value.trim().toLowerCase(),
-    };
-    if (!resetStudentCodeInput.disabled) {
+    const requestingCode = resetStudentCodeInput.disabled;
+    const action = requestingCode ? (studentResetMode === "id" ? "student_id_request" : "student_pin_request") : "student_pin_reset";
+    const payload = { action };
+    if (requestingCode && studentResetMode === "id") payload.phone = resetStudentPhoneInput.value.trim();
+    if (studentResetMode === "pin" || !requestingCode) payload.studentId = resetStudentIdInput.value.trim().toLowerCase();
+    if (!requestingCode) {
       payload.code = resetStudentCodeInput.value.trim();
       payload.pin = resetStudentPinInput.value;
     }
@@ -319,8 +351,19 @@ studentPinResetForm.addEventListener("submit", async (event) => {
       resetStudentPinInput.disabled = false;
       resetStudentCodeField.hidden = false;
       resetStudentPinField.hidden = false;
+      if (studentResetMode === "id") {
+        resetStudentPhoneField.hidden = true;
+        resetStudentPhoneInput.disabled = true;
+        resetStudentIdField.hidden = false;
+        resetStudentIdInput.disabled = false;
+        resetStudentIdInput.value = "";
+        resetStudentHint.textContent = "Lehrling-ID und SMS-Code aus der SMS eingeben und neuen PIN festlegen.";
+      } else {
+        resetStudentIdField.hidden = true;
+        resetStudentIdInput.disabled = true;
+        resetStudentHint.textContent = "SMS-Code eingeben und neuen PIN festlegen.";
+      }
       resetStudentButton.textContent = "PIN ersetzen";
-      resetStudentHint.textContent = "SMS-Code eingeben und neuen PIN festlegen.";
       const sentMessage = "SMS-Code wurde an " + (result.maskedPhone || "die hinterlegte Nummer") + " gesendet.";
       resetStudentStatus.textContent = sentMessage;
       resetStudentStatus.className = "reset-status is-success";
@@ -343,7 +386,8 @@ studentPinResetForm.addEventListener("submit", async (event) => {
     const code = String(error.message || "").replace(/^Error:\s*/i, "");
     const messages = {
       invalid_reset_data: "Bitte Lehrling-ID, Telefonnummer und PIN prüfen.",
-      phone_not_registered: "Diese Telefonnummer ist für die Lehrling-ID nicht hinterlegt.",
+      phone_not_registered: "Diese Telefonnummer ist nicht hinterlegt.",
+      phone_not_unique: "Diese Telefonnummer ist mehreren Lehrlingen zugeordnet. Bitte Support kontaktieren.",
       sms_not_configured: "SMS-Versand ist noch nicht eingerichtet. Bitte Support kontaktieren.",
       invalid_reset_code: "Der SMS-Code ist nicht korrekt.",
       reset_code_expired: "Der SMS-Code ist abgelaufen. Bitte einen neuen Code anfordern.",
