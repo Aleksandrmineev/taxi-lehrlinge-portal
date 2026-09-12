@@ -24,6 +24,16 @@ const portalBootText = document.getElementById("portalBootText");
 const portalBootRetry = document.getElementById("portalBootRetry");
 const portalToast = document.getElementById("portalToast");
 const portalToastText = document.getElementById("portalToastText");
+const showResetStudentButton = document.getElementById("showResetStudentButton");
+const studentPinResetForm = document.getElementById("studentPinResetForm");
+const closeResetStudentButton = document.getElementById("closeResetStudentButton");
+const resetStudentButton = document.getElementById("resetStudentButton");
+const resetStudentIdInput = document.getElementById("resetStudentIdInput");
+const resetStudentCodeInput = document.getElementById("resetStudentCodeInput");
+const resetStudentPinInput = document.getElementById("resetStudentPinInput");
+const resetStudentCodeField = document.getElementById("resetStudentCodeField");
+const resetStudentPinField = document.getElementById("resetStudentPinField");
+const resetStudentHint = document.getElementById("resetStudentHint");
 let portalToastTimer = null;
 
 function showPortalToast(message, type = "success", duration = 2600) {
@@ -33,6 +43,28 @@ function showPortalToast(message, type = "success", duration = 2600) {
   portalToast.className = `portal-toast portal-toast--${type}`;
   portalToast.hidden = false;
   portalToastTimer = setTimeout(() => { portalToast.hidden = true; }, duration);
+}
+
+function openStudentPinReset() {
+  document.getElementById("loginForm").hidden = true;
+  showResetStudentButton.hidden = true;
+  studentPinResetForm.hidden = false;
+  resetStudentIdInput.value = studentIdInput.value.trim().toLowerCase();
+  resetStudentCodeInput.value = "";
+  resetStudentPinInput.value = "";
+  resetStudentCodeInput.disabled = true;
+  resetStudentPinInput.disabled = true;
+  resetStudentCodeField.hidden = true;
+  resetStudentPinField.hidden = true;
+  resetStudentButton.textContent = "SMS-Code anfordern";
+  resetStudentHint.textContent = "Zuerst SMS-Code anfordern. Danach Code und neuen PIN eingeben.";
+  resetStudentIdInput.focus();
+}
+
+function closeStudentPinReset() {
+  studentPinResetForm.hidden = true;
+  document.getElementById("loginForm").hidden = false;
+  showResetStudentButton.hidden = false;
 }
 const periodFrom = document.getElementById("periodFrom");
 const periodTo = document.getElementById("periodTo");
@@ -257,6 +289,62 @@ document.querySelectorAll("[data-period]").forEach((button) => {
     setPeriod(dateKey(monday), dateKey(end));
     if (state.token) refreshPeriod();
   });
+});
+
+showResetStudentButton.addEventListener("click", openStudentPinReset);
+closeResetStudentButton.addEventListener("click", closeStudentPinReset);
+
+studentPinResetForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!studentPinResetForm.reportValidity()) return;
+  resetStudentButton.disabled = true;
+  resetStudentButton.classList.add("is-saving");
+  try {
+    const action = resetStudentCodeInput.disabled ? "student_pin_request" : "student_pin_reset";
+    const payload = {
+      action,
+      studentId: resetStudentIdInput.value.trim().toLowerCase(),
+    };
+    if (!resetStudentCodeInput.disabled) {
+      payload.code = resetStudentCodeInput.value.trim();
+      payload.pin = resetStudentPinInput.value;
+    }
+    const result = await apiPost(payload);
+    if (action === "student_pin_request") {
+      resetStudentCodeInput.disabled = false;
+      resetStudentPinInput.disabled = false;
+      resetStudentCodeField.hidden = false;
+      resetStudentPinField.hidden = false;
+      resetStudentButton.textContent = "PIN ersetzen";
+      resetStudentHint.textContent = "SMS-Code eingeben und neuen PIN festlegen.";
+      showPortalToast("SMS-Code wurde an " + (result.maskedPhone || "die hinterlegte Nummer") + " gesendet.", "success");
+      resetStudentCodeInput.focus();
+    } else {
+      state.token = result.token;
+      state.studentId = result.studentId;
+      localStorage.setItem("lehrlinge_student_token", state.token);
+      await loadStudentPlan();
+      studentPinResetForm.hidden = true;
+      loginView.hidden = true;
+      portalView.hidden = false;
+      renderTrips();
+      showPortalToast("PIN wurde erfolgreich ersetzt.", "success");
+    }
+  } catch (error) {
+    const code = String(error.message || "").replace(/^Error:\s*/i, "");
+    const messages = {
+      invalid_reset_data: "Bitte Lehrling-ID, Telefonnummer und PIN prüfen.",
+      phone_not_registered: "Diese Telefonnummer ist für die Lehrling-ID nicht hinterlegt.",
+      sms_not_configured: "SMS-Versand ist noch nicht eingerichtet. Bitte Support kontaktieren.",
+      invalid_reset_code: "Der SMS-Code ist nicht korrekt.",
+      reset_code_expired: "Der SMS-Code ist abgelaufen. Bitte einen neuen Code anfordern.",
+      reset_code_locked: "Zu viele falsche Versuche. Bitte einen neuen Code anfordern.",
+    };
+    showPortalToast(messages[code] || "Wiederherstellung nicht möglich: " + code, "error", 4500);
+  } finally {
+    resetStudentButton.disabled = false;
+    resetStudentButton.classList.remove("is-saving");
+  }
 });
 
 document.getElementById("loginForm").addEventListener("submit", async (event) => {

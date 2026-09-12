@@ -48,6 +48,11 @@ input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px
 @keyframes portal-save-spin { to { transform: rotate(360deg); } }
 .primary.small { width: fit-content; margin-top: 8px; padding: 10px 14px; }
 .ghost { border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.reset-link { border: 0; padding: 4px 0; background: transparent; color: var(--muted); font-size: 13px; justify-self: start; }
+.reset-link:hover { color: var(--accent); }
+.pin-reset-form { margin-top: 14px; }
+.pin-reset-form > div[hidden] { display: none; }
+.reset-hint { font-size: 12px; margin: 0; }
 .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 18px; }
 .topbar h1 { margin: 5px 0 0; }
 .profile-time { color: var(--muted); font-size: 12px; }
