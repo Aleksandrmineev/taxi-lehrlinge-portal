@@ -111,8 +111,9 @@ select { appearance: none; -webkit-appearance: none; padding-right: 38px; backgr
 .plan-student small, .plan-cancelled small { color: var(--muted); font-size: 11px; }
 .plan-cancellations { display: grid; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--red); font-size: 13px; }
 .plan-cancelled { display: grid; gap: 1px; }
-.student-pick-list { display: grid; gap: 8px; }
-.student-pick { display: grid; gap: 1px; width: 100%; padding: 11px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink); font-weight: 800; text-align: left; }
+.student-pick-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.student-pick { display: flex; align-items: center; justify-content: center; min-height: 54px; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink); font-weight: 800; line-height: 1.25; text-align: center; overflow-wrap: anywhere; }
+.student-pick-list > :not(.student-pick) { grid-column: 1 / -1; }
 .student-pick small { color: var(--muted); font-size: 12px; font-weight: 600; }
 .student-pick:hover, .student-pick:focus-visible { border-color: var(--accent); background: var(--green); outline: none; }
 .help-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
