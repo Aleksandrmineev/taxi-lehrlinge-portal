@@ -26,7 +26,7 @@
     <meta name="twitter:title" content="Lehrlinge Portal · MurtalTaxi" />
     <meta name="twitter:description" content="Persönliches Portal für Lehrlinge zur Verwaltung der MurtalTaxi-Fahrten." />
     <meta name="twitter:image" content="https://taxi-lehrlinge-portal.vercel.app/assets/favicon/android-chrome-512x512.png" />
-    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./style.css?v=20260922-1" />
   </head>
   <body>
     <div id="portalBoot" class="portal-boot" role="status" aria-live="polite">
@@ -41,12 +41,14 @@
       <section id="loginView" class="login card">
         <div class="eyebrow">MurtalTaxi · Lehrlinge Portal</div>
         <h1>Deine Fahrten verwalten</h1>
-        <p class="muted">Melde dich mit deiner Lehrling-ID und deinem PIN an.</p>
+        <p class="muted">Wähle deinen Namen und melde dich mit deinem PIN an.</p>
         <form id="loginForm">
-          <label for="studentIdInput">Lehrling-ID</label>
-          <input id="studentIdInput" type="text" placeholder="z. B. oliver" autocomplete="username" required />
-          <label for="pinInput">PIN</label>
+          <label for="studentIdSelect">Lehrling</label>
+          <select id="studentIdSelect" required><option value="" disabled selected>Wird geladen…</option></select>
+          <input id="studentIdInput" type="text" placeholder="Lehrling-ID, z. B. oliver" autocomplete="username" hidden />
+          <label for="pinInput" id="pinLabel">PIN</label>
           <input id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="current-password" required />
+          <p id="sharedHint" class="muted reset-hint" hidden>Gemeinsamer Zugang ohne persönliche Registrierung. Passwort: Postleitzahl von Pöls.</p>
           <button id="loginStudentButton" class="primary" type="submit">Einloggen</button>
         </form>
         <p id="loginStatus" class="save-status" aria-live="polite"></p>
@@ -76,10 +78,10 @@
           <p class="muted reset-hint">Telefonnummer ändern? Bitte Support kontaktieren.</p>
         </form>
         <div class="auth-links">
-          <a class="support-link ghost" href="https://wa.me/4368181289405" target="_blank" rel="noopener"><svg class="whatsapp-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8.2 7.8c.2-.4.5-.5.9-.5h.6c.2 0 .4.2.5.4l.7 1.7c.1.3.1.5-.1.7l-.5.7c.6 1 1.4 1.8 2.5 2.4l.7-.5c.2-.2.5-.2.7-.1l1.7.7c.3.1.4.3.4.5v.6c0 .4-.2.7-.5.9-.5.3-1.2.4-1.8.2-2.1-.6-4.8-3.2-5.6-5.3-.3-.8-.2-1.7.1-2.3Z"/></svg>Support</a>
-          <button id="showResetStudentButton" class="ghost reset-link" type="button"><span aria-hidden="true">⌁</span>PIN vergessen?</button>
-          <button id="showHelpButton" class="ghost help-button" type="button"><svg class="help-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.35 2.35 0 1 1 3.9 1.8c-.9.7-1.7 1.2-1.7 2.5M12 16.8v.1"/></svg>Hilfe</button>
-          <button id="installAppButton" data-install-app class="ghost install-app-button" type="button" hidden><svg class="install-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 16v3h14v-3" /></svg>Installieren</button>
+          <a class="auth-link" href="https://wa.me/4368181289405" target="_blank" rel="noopener"><span class="auth-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg></span><span class="auth-label">Support</span></a>
+          <button id="showResetStudentButton" class="auth-link" type="button"><span class="auth-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 2-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></span><span class="auth-label">PIN vergessen?</span></button>
+          <button id="showHelpButton" class="auth-link" type="button"><span class="auth-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg></span><span class="auth-label">Hilfe</span></button>
+          <button id="installAppButton" data-install-app class="auth-link" type="button" hidden><span class="auth-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></span><span class="auth-label">Installieren</span></button>
         </div>
       </section>
 
@@ -106,7 +108,7 @@
           </section>
           <section>
             <h3>5. Rechte und Sicherheit</h3>
-            <p>Lehrlinge können nur ihren eigenen Plan bearbeiten. Autorisierte Fahrer können einen Plan im Ausnahmefall korrigieren – zum Beispiel, wenn ein Lehrling das Portal nicht verwendet oder eine Änderung auf anderem Weg mitteilt. Jede Person hat eine eigene ID. Die PIN wird nicht direkt gespeichert, sondern nur als Hashwert. Auch die Administration kann deine PIN nicht auslesen.</p>
+            <p>Lehrlinge können mit ihrer ID und ihrem PIN ihren eigenen Plan bearbeiten. Während der Testphase gibt es außerdem den gemeinsamen Zugang, mit dem jeder Plan bearbeitet werden kann. Autorisierte Fahrer können einen Plan im Ausnahmefall korrigieren – zum Beispiel, wenn ein Lehrling das Portal nicht verwendet oder eine Änderung auf anderem Weg mitteilt. Jede Person hat eine eigene ID. Die PIN wird nicht direkt gespeichert, sondern nur als Hashwert. Auch die Administration kann deine PIN nicht auslesen.</p>
           </section>
           <section>
             <h3>6. PIN vergessen?</h3>
@@ -130,11 +132,68 @@
         </div>
       </dialog>
 
+      <section id="sharedPickerView" hidden>
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">MurtalTaxi · Gemeinsamer Zugang</div>
+            <h1>Lehrling auswählen</h1>
+          </div>
+        </header>
+        <section class="card">
+          <input id="studentSearch" type="search" placeholder="Name suchen" autocomplete="off" aria-label="Lehrling suchen" />
+          <div id="studentPickList" class="student-pick-list"></div>
+          <div id="studentPickStatus" class="period-status" aria-live="polite">Lehrlinge werden geladen…</div>
+        </section>
+        <div class="portal-footer">
+          <button id="pickerPlanButton" class="ghost" type="button">Fahrtenplan ansehen</button>
+          <button id="sharedLogoutButton" class="ghost" type="button">Abmelden</button>
+        </div>
+      </section>
+
+      <section id="sharedPlanView" hidden>
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">MurtalTaxi · Gemeinsamer Zugang</div>
+            <h1>Fahrtenplan</h1>
+          </div>
+          <button id="planEditButton" class="icon-button" type="button" aria-label="Plan ändern" title="Plan ändern"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16.8-.7 3.9 3.9-.7L18.8 8.4l-3.2-3.2L4 16.8Zm12.7-10.7 1.2-1.2a1.7 1.7 0 0 1 2.4 2.4l-1.2 1.2-2.4-2.4Z"/></svg></button>
+        </header>
+        <section class="card">
+          <details class="period-details">
+            <summary>Zeitraum &amp; Filter</summary>
+            <div class="period-controls">
+              <label>Von <input id="planFrom" type="date" /></label>
+              <label>Bis <input id="planTo" type="date" /></label>
+              <label>Route
+                <select id="planRoute"><option value="all">Alle Routen</option><option value="1">Route 1</option><option value="2">Route 2</option></select>
+              </label>
+              <label>Fahrt
+                <select id="planDirection"><option value="all">Alle</option><option value="morning">Hinfahrt</option><option value="evening">Rückfahrt</option></select>
+              </label>
+              <button id="planReload" class="ghost period-btn" type="button">Aktualisieren</button>
+            </div>
+          </details>
+          <div id="planStatus" class="period-status" aria-live="polite" hidden></div>
+          <div id="planSchedule" class="plan-schedule"></div>
+        </section>
+        <div class="portal-footer">
+          <button id="planBackButton" class="ghost" type="button">Lehrling auswählen</button>
+          <button id="planLogoutButton" class="ghost" type="button">Abmelden</button>
+        </div>
+      </section>
+
       <section id="portalView" hidden>
+        <div id="sharedBanner" class="shared-banner" hidden>
+          <span>Gemeinsamer Zugang · Plan bearbeiten</span>
+          <div class="shared-banner__actions">
+            <button id="checkChangesButton" class="ghost" type="button">Änderungen prüfen</button>
+            <button id="changeStudentButton" class="ghost" type="button">Lehrling wechseln</button>
+          </div>
+        </div>
         <header class="topbar">
           <div>
             <div class="eyebrow">MurtalTaxi · Lehrlinge Portal</div>
-            <h1>Hallo, <span id="studentName">Oliver</span>!</h1>
+            <h1><span class="greeting-prefix">Hallo, </span><span id="studentName">Oliver</span><span class="greeting-suffix">!</span></h1>
           </div>
         </header>
 
@@ -194,6 +253,6 @@
       </div>
     </div>
     <script src="./pwa-install.js?v=20260912-1" defer></script>
-    <script src="./app.js?v=20260912-5"></script>
+    <script src="./app.js?v=20260922-1"></script>
   </body>
 </html>

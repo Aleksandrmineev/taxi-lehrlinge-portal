@@ -5,6 +5,10 @@ const state = {
   studentId: "oliver",
   trips: {},
   token: localStorage.getItem("lehrlinge_student_token") || "",
+  mode: "student", // "student" | "shared" (gemeinsamer Testzugang)
+  shared: null,
+  holidays: [],
+  changed: new Set(),
 };
 
 let scheduleData = null;
@@ -40,6 +44,31 @@ const resetStudentPinField = document.getElementById("resetStudentPinField");
 const resetStudentHint = document.getElementById("resetStudentHint");
 const resetStudentStatus = document.getElementById("resetStudentStatus");
 const showStudentIdRecovery = document.getElementById("showStudentIdRecovery");
+const sharedTaxiInput = document.getElementById("sharedTaxiInput");
+const sharedPinInput = document.getElementById("sharedPinInput");
+const studentIdSelect = document.getElementById("studentIdSelect");
+const pinLabel = document.getElementById("pinLabel");
+const sharedHint = document.getElementById("sharedHint");
+const sharedPickerView = document.getElementById("sharedPickerView");
+const pickerPlanButton = document.getElementById("pickerPlanButton");
+const sharedPlanView = document.getElementById("sharedPlanView");
+const planEditButton = document.getElementById("planEditButton");
+const planFrom = document.getElementById("planFrom");
+const planTo = document.getElementById("planTo");
+const planRoute = document.getElementById("planRoute");
+const planDirection = document.getElementById("planDirection");
+const planReload = document.getElementById("planReload");
+const planStatus = document.getElementById("planStatus");
+const planSchedule = document.getElementById("planSchedule");
+const planBackButton = document.getElementById("planBackButton");
+const planLogoutButton = document.getElementById("planLogoutButton");
+const checkChangesButton = document.getElementById("checkChangesButton");
+const studentSearch = document.getElementById("studentSearch");
+const studentPickList = document.getElementById("studentPickList");
+const studentPickStatus = document.getElementById("studentPickStatus");
+const sharedLogoutButton = document.getElementById("sharedLogoutButton");
+const sharedBanner = document.getElementById("sharedBanner");
+const changeStudentButton = document.getElementById("changeStudentButton");
 const helpDialog = document.getElementById("helpDialog");
 const showHelpButton = document.getElementById("showHelpButton");
 const closeHelpButton = document.getElementById("closeHelpButton");
@@ -60,7 +89,7 @@ function openStudentPinReset() {
   document.getElementById("loginForm").hidden = true;
   showResetStudentButton.hidden = true;
   studentPinResetForm.hidden = false;
-  resetStudentIdInput.value = studentIdInput.value.trim().toLowerCase();
+  resetStudentIdInput.value = currentLoginId();
   resetStudentIdField.hidden = false;
   resetStudentIdInput.disabled = false;
   resetStudentPhoneField.hidden = true;
@@ -121,6 +150,10 @@ async function refreshPeriod() {
     await loadStudentPlan();
     renderTrips();
   } catch (error) {
+    if (error instanceof SharedAuthError) {
+      handleSharedError(error);
+      return;
+    }
     periodStatus.textContent = "Daten konnten nicht geladen werden.";
     showPortalToast("Daten konnten nicht geladen werden", "error", 4500);
   } finally {
@@ -240,9 +273,17 @@ async function loginStudent(studentId, pin) {
 }
 
 async function loadStudentPlan() {
-  const result = await apiGet({ fn: "student_plan", studentToken: state.token, from: state.from, to: state.to });
+  let result;
+  if (state.mode === "shared") {
+    result = await sharedApi("student-plan", { query: { studentId: state.studentId, from: state.from, to: state.to } });
+    if (result.student) result.student = { ...result.student, arrivalTime: result.student.arrivalTime || result.student.time };
+    state.holidays = result.holidays || [];
+  } else {
+    result = await apiGet({ fn: "student_plan", studentToken: state.token, from: state.from, to: state.to });
+  }
   scheduleData = { items: Object.fromEntries((result.items || []).map((item) => [item.date, item])) };
   state.trips = {};
+  state.changed.clear();
   if (result.student) {
     document.getElementById("studentName").textContent = result.student.name;
     document.getElementById("studentRoute").textContent = result.student.route ? `Route ${result.student.route}` : "—";
@@ -250,6 +291,288 @@ async function loadStudentPlan() {
     document.getElementById("studentTime").textContent = result.student.arrivalTime ? `Abholung ${result.student.arrivalTime}` : "";
   }
 }
+
+/* ===== Gemeinsamer Zugang (Testphase) =====
+ * Login "lehrlinge" + gemeinsames Passwort, ohne persönliche Registrierung. Der Server prüft das Passwort,
+ * vergibt ein eingeschränktes Token, zeigt keine Adressen und erzwingt die Änderungsfristen.
+ * Daten laufen über die MurtalTaxi-API (Redis). */
+const MAIN_ORIGIN = "https://taxi-murtal.vercel.app";
+const SHARED_KEY = "mt:portal-shared-session";
+
+class SharedAuthError extends Error { constructor() { super("shared_auth_required"); } }
+
+function readSharedSession() {
+  try {
+    const session = JSON.parse(localStorage.getItem(SHARED_KEY) || "null");
+    return session && session.jwt && session.expiresAt > Date.now() ? session : null;
+  } catch (_) { return null; }
+}
+
+function hasAccess() { return state.mode === "shared" ? Boolean(state.shared) : Boolean(state.token); }
+
+async function loginShared(login, password) {
+  let response;
+  try {
+    response = await fetch(`${MAIN_ORIGIN}/api/lehrlinge/shared-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ login, password }),
+    });
+  } catch (_) { throw new Error("unavailable"); }
+  const data = await response.json().catch(() => ({}));
+  if (response.status === 429) throw new Error("too_many_attempts");
+  if (response.status === 503) throw new Error("shared_access_disabled");
+  if (!response.ok || !data.jwt) throw new Error(response.status >= 500 ? "unavailable" : "invalid_credentials");
+  state.shared = { jwt: data.jwt, expiresAt: Date.now() + (Number(data.expiresInSec) || 86400) * 1000 };
+  localStorage.setItem(SHARED_KEY, JSON.stringify(state.shared));
+}
+
+async function sharedApi(path, { method = "GET", query = {}, body } = {}) {
+  if (!state.shared?.jwt) throw new SharedAuthError();
+  const url = new URL(`${MAIN_ORIGIN}/api/lehrlinge/${path}`);
+  Object.entries(query).forEach(([key, value]) => url.searchParams.set(key, value));
+  let response;
+  try {
+    response = await fetch(url, {
+      method,
+      headers: { Authorization: `Bearer ${state.shared.jwt}`, ...(body ? { "Content-Type": "application/json" } : {}) },
+      body: body ? JSON.stringify(body) : undefined,
+      cache: "no-store",
+    });
+  } catch (_) { throw new Error("Server nicht erreichbar"); }
+  const data = await response.json().catch(() => ({}));
+  if (response.status === 401) throw new SharedAuthError();
+  if (response.status >= 500 || response.status === 404) throw new Error("Server nicht erreichbar");
+  if (!response.ok || data.ok === false) throw new Error(data.error || "API-Fehler");
+  return data;
+}
+
+function tripStatus(item) {
+  return item.out && item.back ? "both" : item.out ? "out" : item.back ? "back" : "none";
+}
+
+async function saveSharedChanges() {
+  const rows = [...state.changed].filter((date) => state.trips[date]).map((date) => ({
+    date,
+    student_id: state.studentId,
+    status: tripStatus(state.trips[date]),
+    note: scheduleData?.items?.[date]?.note || "",
+  }));
+  if (!rows.length) return 0;
+  await sharedApi("plan-save", { method: "POST", body: { rows, holidays: state.holidays } });
+  return rows.length;
+}
+
+function showOnly(view) {
+  loginView.hidden = view !== "login";
+  sharedPickerView.hidden = view !== "picker";
+  sharedPlanView.hidden = view !== "plan";
+  portalView.hidden = view !== "portal";
+  portalBoot.hidden = true;
+}
+
+function leaveSharedMode() {
+  state.mode = "student";
+  state.shared = null;
+  localStorage.removeItem(SHARED_KEY);
+  portalView.classList.remove("is-shared");
+  sharedBanner.hidden = true;
+  showOnly("login");
+  pinInput.value = "";
+}
+
+function handleSharedError(error, target) {
+  if (error instanceof SharedAuthError) {
+    leaveSharedMode();
+    showPortalToast("Anmeldung abgelaufen. Bitte erneut anmelden.", "error", 4500);
+    return true;
+  }
+  const message = /nicht erreichbar/i.test(error?.message || "") ? "Server nicht erreichbar. Bitte später erneut versuchen." : "Daten konnten nicht geladen werden.";
+  if (target) target.textContent = message;
+  showPortalToast(message, "error", 4500);
+  return false;
+}
+
+let pickerStudents = [];
+
+function escapeText(value) {
+  return String(value ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+}
+function escapeAttr(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function renderStudentPicker() {
+  const query = studentSearch.value.trim().toLowerCase();
+  const shown = pickerStudents.filter((student) => !query || String(student.name).toLowerCase().includes(query));
+  studentPickList.innerHTML = shown.map((student) => `
+    <button class="student-pick" type="button" data-student="${escapeAttr(student.id)}"><span>${escapeText(student.name)}</span></button>`).join("");
+  studentPickStatus.hidden = shown.length > 0 || !pickerStudents.length;
+  if (!shown.length && pickerStudents.length) studentPickStatus.textContent = "Kein Lehrling gefunden.";
+}
+
+async function showSharedPicker() {
+  state.mode = "shared";
+  studentSearch.value = "";
+  studentPickList.innerHTML = "";
+  studentPickStatus.hidden = false;
+  studentPickStatus.textContent = "Lehrlinge werden geladen…";
+  showOnly("picker");
+  try {
+    const data = await sharedApi("students");
+    pickerStudents = (data.students || []).slice().sort((a, b) => String(a.name).localeCompare(String(b.name), "de"));
+    if (!pickerStudents.length) studentPickStatus.textContent = "Keine Lehrlinge gefunden.";
+    renderStudentPicker();
+  } catch (error) {
+    handleSharedError(error, studentPickStatus);
+  }
+}
+
+async function openSharedStudent(studentId) {
+  state.studentId = studentId;
+  state.mode = "shared";
+  studentPickStatus.hidden = false;
+  studentPickStatus.textContent = "Plan wird geladen…";
+  try {
+    await loadStudentPlan();
+    portalView.classList.add("is-shared");
+    sharedBanner.hidden = false;
+    showOnly("portal");
+    renderTrips();
+    saveStatus.textContent = "";
+  } catch (error) {
+    handleSharedError(error, studentPickStatus);
+  }
+}
+
+/* ----- Login: Lehrling per Auswahlliste, dort auch der gemeinsame Zugang ----- */
+const SHARED_OPTION = "__shared__";
+const LAST_STUDENT_KEY = "mt:portal-last-student";
+let usingIdInput = false;
+
+function isSharedSelected() { return !usingIdInput && studentIdSelect.value === SHARED_OPTION; }
+function currentLoginId() {
+  const value = usingIdInput ? studentIdInput.value.trim().toLowerCase() : studentIdSelect.value;
+  return value === SHARED_OPTION ? "" : value;
+}
+
+function syncLoginMode() {
+  const shared = isSharedSelected();
+  pinLabel.textContent = shared ? "Passwort" : "PIN";
+  pinInput.maxLength = shared ? 32 : 4;
+  pinInput.placeholder = shared ? "Passwort" : "••••";
+  sharedHint.hidden = !shared;
+  pinInput.value = "";
+}
+studentIdSelect.addEventListener("change", syncLoginMode);
+
+async function loadPortalStudents() {
+  try {
+    const response = await fetch(`${MAIN_ORIGIN}/api/lehrlinge/portal-students`, {
+      signal: typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(6000) : undefined,
+    });
+    const data = await response.json();
+    if (!response.ok || !Array.isArray(data.students) || !data.students.length) throw new Error("no list");
+    studentIdSelect.innerHTML =
+      `<option value="" disabled selected>Bitte wählen…</option>` +
+      (data.sharedEnabled ? `<option value="${SHARED_OPTION}">Gemeinsamer Zugang (alle Lehrlinge)</option><option disabled>──────────</option>` : "") +
+      data.students.map((student) => `<option value="${escapeAttr(student.id)}">${escapeText(student.name)}</option>`).join("");
+    const last = localStorage.getItem(LAST_STUDENT_KEY);
+    if (last && data.students.some((student) => student.id === last)) studentIdSelect.value = last;
+  } catch (_) {
+    // Liste nicht erreichbar: wie bisher die ID eintippen
+    usingIdInput = true;
+    studentIdSelect.hidden = true;
+    studentIdSelect.required = false;
+    studentIdInput.hidden = false;
+    studentIdInput.required = true;
+    document.querySelector('label[for="studentIdSelect"]').setAttribute("for", "studentIdInput");
+    document.querySelector('label[for="studentIdInput"]').textContent = "Lehrling-ID";
+  }
+}
+
+/* ----- Fahrtenplan (Ansicht wie bei den Fahrern) ----- */
+function setPlanDefaults() {
+  const today = dateKey(new Date());
+  const end = localDate(today);
+  end.setDate(end.getDate() + 4);
+  planFrom.value = today;
+  planTo.value = dateKey(end);
+}
+
+function mapsUrl(address) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || "")}`;
+}
+
+function formatChangedAt(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function renderPlanSchedule(days) {
+  const today = dateKey(new Date());
+  const visible = days.filter((day) => day.date >= today);
+  const nearest = visible[0]?.date;
+  planSchedule.innerHTML = visible.map((day) => `
+    <section class="plan-day">
+      <h2 class="plan-day-title">${escapeText(localDate(day.date).toLocaleDateString("de-AT", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" }))}</h2>
+      ${day.routes.map((route) => `
+        <details class="plan-route"${day.date === nearest ? " open" : ""}>
+          <summary>Route ${escapeText(route.route)} · ${route.direction === "evening" ? "Rückfahrt" : "Hinfahrt"} · ${route.count ?? route.points.reduce((total, point) => total + point.students.length, 0)} Lehrlinge</summary>
+          <div class="plan-points">
+            ${(route.direction === "evening" ? [...route.points].reverse() : route.points).map((point) => `
+              <div class="plan-stop">
+                <a class="plan-address" href="${escapeAttr(point.url && /^https?:\/\//i.test(point.url) ? point.url : mapsUrl(point.address))}" target="_blank" rel="noopener">${escapeText(point.address || "—")}</a>
+                <div class="plan-students">${point.students.map((student) => `<span class="plan-student"><strong>${escapeText(student.name)}</strong>${student.updatedBy ? `<small>Geändert von ${escapeText(student.updatedBy)}${student.note ? ` · ${escapeText(student.note)}` : ""}</small>` : ""}</span>`).join("")}</div>
+              </div>`).join("")}
+          </div>
+          ${route.cancellations?.length ? `<div class="plan-cancellations"><strong>Absagen / Änderungen</strong>${route.cancellations.map((item) => `<div class="plan-cancelled"><span><b>${escapeText(item.name)}</b> ${escapeText(item.address)}</span><small>Geändert von ${escapeText(item.updatedBy)}${item.updatedAt ? ` · ${escapeText(formatChangedAt(item.updatedAt))}` : ""}${item.note ? ` · ${escapeText(item.note)}` : ""}</small></div>`).join("")}</div>` : ""}
+        </details>`).join("")}
+    </section>`).join("") || '<div class="empty-state">Keine zukünftigen Fahrten.</div>';
+  return visible.length;
+}
+
+let planSeq = 0;
+async function loadSharedPlan() {
+  const seq = ++planSeq;
+  planStatus.hidden = false;
+  planStatus.textContent = "Daten werden geladen…";
+  planReload.disabled = true;
+  try {
+    const data = await sharedApi("schedule", { query: { from: planFrom.value, to: planTo.value, route: planRoute.value, direction: planDirection.value } });
+    if (seq !== planSeq) return;
+    const shown = renderPlanSchedule(data.days || []);
+    planStatus.textContent = shown ? "" : "Für diesen Zeitraum sind keine zukünftigen Fahrten geplant.";
+    planStatus.hidden = Boolean(shown);
+  } catch (error) {
+    if (seq === planSeq) handleSharedError(error, planStatus);
+  } finally {
+    if (seq === planSeq) planReload.disabled = false;
+  }
+}
+
+async function showSharedPlan() {
+  state.mode = "shared";
+  if (!planFrom.value) setPlanDefaults();
+  showOnly("plan");
+  await loadSharedPlan();
+}
+
+planEditButton.addEventListener("click", showSharedPicker);
+pickerPlanButton.addEventListener("click", showSharedPlan);
+checkChangesButton.addEventListener("click", showSharedPlan);
+planBackButton.addEventListener("click", showSharedPicker);
+planLogoutButton.addEventListener("click", leaveSharedMode);
+planReload.addEventListener("click", loadSharedPlan);
+[planFrom, planTo, planRoute, planDirection].forEach((element) => element.addEventListener("change", loadSharedPlan));
+studentSearch.addEventListener("input", renderStudentPicker);
+studentPickList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-student]");
+  if (button) openSharedStudent(button.dataset.student);
+});
+changeStudentButton.addEventListener("click", showSharedPicker);
+sharedLogoutButton.addEventListener("click", leaveSharedMode);
 
 function formatDate(key) {
   return localDate(key).toLocaleDateString("de-AT", {
@@ -283,6 +606,7 @@ function renderTrips() {
     button.addEventListener("click", () => {
       const { date, direction } = button.dataset;
       ensureTrip(date)[direction] = !ensureTrip(date)[direction];
+      state.changed.add(date);
       renderTrips();
       saveStatus.textContent = "";
     });
@@ -307,12 +631,12 @@ function weekStarting(date) {
 periodFrom.addEventListener("change", async () => {
   state.from = periodFrom.value;
   renderTrips();
-  if (state.token) refreshPeriod();
+  if (hasAccess()) refreshPeriod();
 });
 periodTo.addEventListener("change", async () => {
   state.to = periodTo.value;
   renderTrips();
-  if (state.token) refreshPeriod();
+  if (hasAccess()) refreshPeriod();
 });
 showPast.addEventListener("change", () => {
   state.showPast = showPast.checked;
@@ -326,9 +650,24 @@ document.querySelectorAll("[data-period]").forEach((button) => {
     const end = new Date(monday);
     end.setDate(end.getDate() + (button.dataset.period === "four" ? 27 : 6));
     setPeriod(dateKey(monday), dateKey(end));
-    if (state.token) refreshPeriod();
+    if (hasAccess()) refreshPeriod();
   });
 });
+
+// Standardzeitraum: aktuelle Woche (am Wochenende die nächste), damit beim Öffnen sofort kommende Fahrten sichtbar sind.
+function setDefaultPeriod() {
+  const day = localDate(dateKey(new Date()));
+  const weekday = day.getDay();
+  if (weekday === 0) day.setDate(day.getDate() + 1);
+  else if (weekday === 6) day.setDate(day.getDate() + 2);
+  else day.setDate(day.getDate() - weekday + 1);
+  const end = new Date(day);
+  end.setDate(end.getDate() + 6);
+  state.from = dateKey(day);
+  state.to = dateKey(end);
+  periodFrom.value = state.from;
+  periodTo.value = state.to;
+}
 
 showResetStudentButton.addEventListener("click", openStudentPinReset);
 showStudentIdRecovery.addEventListener("click", openStudentIdRecovery);
@@ -411,19 +750,35 @@ studentPinResetForm.addEventListener("submit", async (event) => {
 
 document.getElementById("loginForm").addEventListener("submit", async (event) => {
   event.preventDefault();
+  const shared = isSharedSelected();
   loginStudentButton.disabled = true;
   loginStudentButton.classList.add("is-saving");
   loginStudentButton.textContent = "Anmeldung…";
   loginStatus.textContent = "Anmeldung wird geprüft…";
   try {
-    await loginStudent(studentIdInput.value.trim(), pinInput.value.trim());
+    if (shared) {
+      await loginShared("lehrlinge", pinInput.value.trim());
+      pinInput.value = "";
+      loginStatus.textContent = "";
+      await showSharedPicker();
+      return;
+    }
+    await loginStudent(currentLoginId(), pinInput.value.trim());
+    localStorage.setItem(LAST_STUDENT_KEY, state.studentId);
     await loadStudentPlan();
     loginView.hidden = true;
     portalView.hidden = false;
     renderTrips();
     loginStatus.textContent = "";
   } catch (error) {
-    loginStatus.textContent = "Anmeldung fehlgeschlagen. Bitte ID und PIN prüfen.";
+    const messages = {
+      too_many_attempts: "Zu viele Versuche. Bitte in einigen Minuten erneut versuchen.",
+      shared_access_disabled: "Der gemeinsame Zugang ist derzeit nicht verfügbar.",
+      unavailable: "Server nicht erreichbar. Bitte später erneut versuchen.",
+    };
+    loginStatus.textContent = shared
+      ? (messages[error.message] || "Passwort falsch.")
+      : "Anmeldung fehlgeschlagen. Bitte Auswahl und PIN prüfen.";
   } finally {
     loginStudentButton.disabled = false;
     loginStudentButton.classList.remove("is-saving");
@@ -432,6 +787,10 @@ document.getElementById("loginForm").addEventListener("submit", async (event) =>
 });
 
 document.getElementById("logoutBtn").addEventListener("click", () => {
+  if (state.mode === "shared") {
+    leaveSharedMode();
+    return;
+  }
   if (state.token) {
     apiGet({ fn: "student_logout", studentToken: state.token }).catch(() => {});
   }
@@ -442,7 +801,8 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
   state.token = "";
   localStorage.removeItem("lehrlinge_student_token");
   studentIdInput.value = "";
-  pinInput.value = "";
+  studentIdSelect.value = "";
+  syncLoginMode();
 });
 
 saveTrips.addEventListener("click", async () => {
@@ -451,16 +811,25 @@ saveTrips.addEventListener("click", async () => {
   saveTrips.textContent = "Speichere…";
   saveStatus.textContent = "Speichere Änderungen…";
   try {
-    await apiPost({
-      action: "student_plan_save",
-      studentToken: state.token,
-      rows: JSON.stringify(Object.entries(state.trips).map(([date, item]) => ({ date, out: item.out, back: item.back }))),
-    });
+    if (state.mode === "shared") {
+      if (!(await saveSharedChanges())) {
+        saveStatus.textContent = "Keine Änderungen vorhanden.";
+        showPortalToast("Keine Änderungen vorhanden", "error");
+        return;
+      }
+    } else {
+      await apiPost({
+        action: "student_plan_save",
+        studentToken: state.token,
+        rows: JSON.stringify(Object.entries(state.trips).map(([date, item]) => ({ date, out: item.out, back: item.back }))),
+      });
+    }
     saveStatus.textContent = "Änderungen gespeichert.";
     showPortalToast("Änderungen gespeichert", "success");
     await loadStudentPlan();
     renderTrips();
   } catch (error) {
+    if (error instanceof SharedAuthError) { handleSharedError(error); return; }
     saveStatus.textContent = error.message === "morning_cutoff_passed" || error.message === "evening_cutoff_passed"
       ? "Die Änderungsfrist für diese Fahrt ist bereits abgelaufen."
       : `Speichern fehlgeschlagen: ${error.message}`;
@@ -481,6 +850,12 @@ async function restoreStudentSession() {
   portalView.hidden = true;
   portalBoot.hidden = false;
   portalBootRetry.hidden = true;
+  const sharedSession = !state.token && readSharedSession();
+  if (sharedSession) {
+    state.shared = sharedSession;
+    await showSharedPicker();
+    return;
+  }
   if (!state.token) {
     portalBoot.hidden = true;
     loginView.hidden = false;
@@ -511,4 +886,6 @@ portalBootRetry.addEventListener("click", () => {
   restoreStudentSession();
 });
 
+setDefaultPeriod();
+loadPortalStudents();
 restoreStudentSession();

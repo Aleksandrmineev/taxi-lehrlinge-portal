@@ -14,7 +14,7 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-button, input, textarea { font: inherit; }
+button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 .shell { width: min(960px, calc(100% - 32px)); margin: 0 auto; padding: 34px 0 56px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 24px; }
@@ -27,8 +27,8 @@ h2 { font-size: 22px; margin-bottom: 4px; }
 .demo-hint { font-size: 12px; margin: 14px 0 0; }
 form { display: grid; gap: 10px; margin-top: 24px; }
 label { font-size: 13px; font-weight: 750; }
-input, textarea { width: 100%; border: 1px solid var(--line); border-radius: 13px; background: #fbfcfd; color: var(--ink); padding: 13px 14px; outline: none; }
-input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(11, 128, 109, .12); }
+input, textarea, select { width: 100%; border: 1px solid var(--line); border-radius: 13px; background: #fbfcfd; color: var(--ink); padding: 13px 14px; outline: none; }
+input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(11, 128, 109, .12); }
 .primary, .ghost { border-radius: 12px; padding: 12px 16px; font-weight: 800; }
 .primary { border: 0; background: var(--accent); color: white; }
 .primary:hover { background: var(--accent-dark); }
@@ -74,10 +74,47 @@ body:has(.pin-reset-form:not([hidden]))::before { content: ""; position: fixed; 
 .route-summary span { grid-column: 1 / -1; color: var(--muted); font-size: 13px; }
 .support-link { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--accent); font-size: 13px; font-weight: 800; text-decoration: none; }
 .support-link:hover { text-decoration: underline; }
-.auth-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
-.auth-links > * { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 42px; padding: 10px 8px; border: 1px solid var(--line); border-radius: 12px; font-weight: 800; font-size: 13px; text-align: center; text-decoration: none; }
-.auth-links > *:hover { border-color: var(--accent); background: var(--green); }
-.auth-links .install-app-button { color: var(--accent); }
+/* Icon row on the login card: four round icons with a small caption, identical style */
+.auth-links { display: flex; justify-content: center; align-items: flex-start; gap: 6px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+.auth-link { display: flex; flex: 1 1 0; flex-direction: column; align-items: center; gap: 7px; min-width: 0; max-width: 96px; padding: 0; border: 0; background: transparent; color: var(--muted); font-size: 11px; font-weight: 750; line-height: 1.2; text-align: center; text-decoration: none; text-wrap: balance; -webkit-tap-highlight-color: transparent; }
+.auth-icon { display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line)); border-radius: 50%; background: var(--green); color: var(--accent); transition: background .15s ease, color .15s ease, border-color .15s ease, transform .15s ease; }
+.auth-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.auth-label { display: block; max-width: 100%; overflow-wrap: anywhere; }
+.auth-link:hover, .auth-link:focus-visible { color: var(--accent); }
+.auth-link:hover .auth-icon, .auth-link:focus-visible .auth-icon { border-color: var(--accent); background: var(--accent); color: #fff; }
+.auth-link:active .auth-icon { transform: scale(.94); }
+.auth-link:focus-visible { outline: none; }
+.auth-link:focus-visible .auth-icon { box-shadow: 0 0 0 3px rgba(11, 128, 109, .22); }
+@media (display-mode: standalone) { .auth-links [data-install-app] { display: none; } }
+/* Gemeinsamer Zugang (Testphase) */
+.shared-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); border-radius: 14px; background: var(--green); color: var(--accent-dark); font-size: 13px; font-weight: 750; }
+.shared-banner[hidden] { display: none; }
+.shared-banner__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.shared-banner .ghost { flex: 0 0 auto; padding: 8px 12px; font-size: 13px; }
+#portalView.is-shared .greeting-prefix, #portalView.is-shared .greeting-suffix { display: none; }
+#studentSearch { margin-bottom: 12px; }
+select { appearance: none; -webkit-appearance: none; padding-right: 38px; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 19px) 55%, calc(100% - 14px) 55%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
+.icon-button { flex: 0 0 auto; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line)); border-radius: 50%; background: var(--green); color: var(--accent); transition: background .15s ease, color .15s ease; }
+.icon-button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.icon-button:hover, .icon-button:focus-visible { background: var(--accent); color: #fff; outline: none; }
+.plan-schedule { display: grid; gap: 16px; }
+.plan-day-title { margin: 0 0 8px; font-size: 16px; text-transform: capitalize; }
+.plan-route { border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden; }
+.plan-route + .plan-route { margin-top: 8px; }
+.plan-route > summary { cursor: pointer; padding: 11px 14px; font-size: 13px; font-weight: 800; background: var(--green); color: var(--accent-dark); }
+.plan-points { display: grid; }
+.plan-stop { display: grid; gap: 3px; padding: 10px 14px; border-top: 1px solid var(--line); }
+.plan-address { color: var(--ink); font-weight: 800; text-decoration: none; }
+.plan-address:hover { color: var(--accent); text-decoration: underline; }
+.plan-students { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.plan-student { display: grid; font-size: 13px; }
+.plan-student small, .plan-cancelled small { color: var(--muted); font-size: 11px; }
+.plan-cancellations { display: grid; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--red); font-size: 13px; }
+.plan-cancelled { display: grid; gap: 1px; }
+.student-pick-list { display: grid; gap: 8px; }
+.student-pick { display: grid; gap: 1px; width: 100%; padding: 11px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink); font-weight: 800; text-align: left; }
+.student-pick small { color: var(--muted); font-size: 12px; font-weight: 600; }
+.student-pick:hover, .student-pick:focus-visible { border-color: var(--accent); background: var(--green); outline: none; }
 .help-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
 .help-icon { width: 17px; height: 17px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .help-button:hover { border-color: var(--accent); color: var(--accent); background: var(--green); }
@@ -228,7 +265,13 @@ body:has(.pin-reset-form:not([hidden]))::before { content: ""; position: fixed; 
   .trip-label-long { display: none; }
   .trip-label-short { display: inline; }
   .primary.small { margin-inline: auto; }
-  .auth-links { width: 100%; }
-  .auth-links > * { flex: 1 1 0; min-width: 0; }
+  .auth-links { gap: 4px; }
+  .auth-icon { width: 46px; height: 46px; }
+  .shared-banner { flex-wrap: wrap; }
   .help-dialog { padding: 20px 16px; }
+}
+@media (max-width: 359px) {
+  .auth-icon { width: 42px; height: 42px; }
+  .auth-icon svg { width: 20px; height: 20px; }
+  .auth-link { font-size: 10.5px; }
 }
