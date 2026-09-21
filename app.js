@@ -50,7 +50,6 @@ const studentIdSelect = document.getElementById("studentIdSelect");
 const pinLabel = document.getElementById("pinLabel");
 const sharedHint = document.getElementById("sharedHint");
 const sharedPickerView = document.getElementById("sharedPickerView");
-const pickerPlanButton = document.getElementById("pickerPlanButton");
 const sharedPlanView = document.getElementById("sharedPlanView");
 const planEditButton = document.getElementById("planEditButton");
 const planFrom = document.getElementById("planFrom");
@@ -60,13 +59,14 @@ const planDirection = document.getElementById("planDirection");
 const planReload = document.getElementById("planReload");
 const planStatus = document.getElementById("planStatus");
 const planSchedule = document.getElementById("planSchedule");
-const planBackButton = document.getElementById("planBackButton");
-const planLogoutButton = document.getElementById("planLogoutButton");
 const checkChangesButton = document.getElementById("checkChangesButton");
+const sharedNav = document.getElementById("sharedNav");
+const navBack = document.getElementById("navBack");
+const navPlan = document.getElementById("navPlan");
+const navHome = document.getElementById("navHome");
 const studentSearch = document.getElementById("studentSearch");
 const studentPickList = document.getElementById("studentPickList");
 const studentPickStatus = document.getElementById("studentPickStatus");
-const sharedLogoutButton = document.getElementById("sharedLogoutButton");
 const sharedBanner = document.getElementById("sharedBanner");
 const changeStudentButton = document.getElementById("changeStudentButton");
 const helpDialog = document.getElementById("helpDialog");
@@ -75,11 +75,16 @@ const closeHelpButton = document.getElementById("closeHelpButton");
 let portalToastTimer = null;
 let studentResetMode = "pin";
 
-function showPortalToast(message, type = "success", duration = 2600) {
+function showPortalToast(message, type = "success", duration = 2600, action = null) {
   if (!portalToast || !portalToastText) return;
   clearTimeout(portalToastTimer);
   portalToastText.textContent = message;
   portalToast.className = `portal-toast portal-toast--${type}`;
+  // Optionale Aktion (z. B. "Änderungen prüfen"): Plakette bleibt länger sichtbar
+  const button = document.getElementById("portalToastAction");
+  button.hidden = !action;
+  button.onclick = action ? () => { portalToast.hidden = true; clearTimeout(portalToastTimer); action.onClick(); } : null;
+  if (action) button.textContent = action.label;
   portalToast.hidden = false;
   portalToastTimer = setTimeout(() => { portalToast.hidden = true; }, duration);
 }
@@ -369,6 +374,30 @@ function showOnly(view) {
   sharedPlanView.hidden = view !== "plan";
   portalView.hidden = view !== "portal";
   portalBoot.hidden = true;
+  updateSharedNav(view);
+}
+
+// Navigationsleiste nur im gemeinsamen Zugang: Auswahl, Fahrtenplan, Bearbeiten
+function updateSharedNav(view) {
+  const inShared = state.mode === "shared" && (view === "picker" || view === "plan" || view === "portal");
+  sharedNav.hidden = !inShared;
+  document.body.classList.toggle("has-shared-nav", inShared);
+  navBack.hidden = view === "picker"; // eine Ebene höher von der Auswahl ist die Anmeldung = Start
+  navPlan.hidden = view === "plan";
+}
+
+// System-Zurück (Android/iOS) folgt den Bildschirmen des Portals
+function pushView(view, extra = {}) {
+  try { history.pushState({ view, ...extra }, ""); } catch (_) {}
+}
+
+// Ungespeicherte Änderungen im Bearbeiten-Bildschirm nicht stillschweigend verwerfen
+function confirmLeaveEdit() {
+  const editing = state.mode === "shared" && !portalView.hidden && state.changed.size > 0;
+  return !editing || window.confirm("Ungespeicherte Änderungen verwerfen?");
+}
+function guarded(action) {
+  return () => { if (confirmLeaveEdit()) action(); };
 }
 
 function leaveSharedMode() {
@@ -411,13 +440,14 @@ function renderStudentPicker() {
   if (!shown.length && pickerStudents.length) studentPickStatus.textContent = "Kein Lehrling gefunden.";
 }
 
-async function showSharedPicker() {
+async function showSharedPicker(options = {}) {
   state.mode = "shared";
   studentSearch.value = "";
   studentPickList.innerHTML = "";
   studentPickStatus.hidden = false;
   studentPickStatus.textContent = "Lehrlinge werden geladen…";
   showOnly("picker");
+  if (!options.fromPop) pushView("picker");
   try {
     const data = await sharedApi("students");
     pickerStudents = (data.students || []).slice().sort((a, b) => String(a.name).localeCompare(String(b.name), "de"));
@@ -428,7 +458,7 @@ async function showSharedPicker() {
   }
 }
 
-async function openSharedStudent(studentId) {
+async function openSharedStudent(studentId, options = {}) {
   state.studentId = studentId;
   state.mode = "shared";
   studentPickStatus.hidden = false;
@@ -438,6 +468,7 @@ async function openSharedStudent(studentId) {
     portalView.classList.add("is-shared");
     sharedBanner.hidden = false;
     showOnly("portal");
+    if (!options.fromPop) pushView("portal", { studentId });
     renderTrips();
     saveStatus.textContent = "";
   } catch (error) {
@@ -552,18 +583,19 @@ async function loadSharedPlan() {
   }
 }
 
-async function showSharedPlan() {
+async function showSharedPlan(options = {}) {
   state.mode = "shared";
   if (!planFrom.value) setPlanDefaults();
   showOnly("plan");
+  if (!options.fromPop) pushView("plan");
   await loadSharedPlan();
 }
 
-planEditButton.addEventListener("click", showSharedPicker);
-pickerPlanButton.addEventListener("click", showSharedPlan);
-checkChangesButton.addEventListener("click", showSharedPlan);
-planBackButton.addEventListener("click", showSharedPicker);
-planLogoutButton.addEventListener("click", leaveSharedMode);
+planEditButton.addEventListener("click", () => showSharedPicker());
+checkChangesButton.addEventListener("click", guarded(() => showSharedPlan()));
+navBack.addEventListener("click", guarded(() => showSharedPicker()));
+navPlan.addEventListener("click", guarded(() => showSharedPlan()));
+navHome.addEventListener("click", guarded(leaveSharedMode));
 planReload.addEventListener("click", loadSharedPlan);
 [planFrom, planTo, planRoute, planDirection].forEach((element) => element.addEventListener("change", loadSharedPlan));
 studentSearch.addEventListener("input", renderStudentPicker);
@@ -571,8 +603,7 @@ studentPickList.addEventListener("click", (event) => {
   const button = event.target.closest("[data-student]");
   if (button) openSharedStudent(button.dataset.student);
 });
-changeStudentButton.addEventListener("click", showSharedPicker);
-sharedLogoutButton.addEventListener("click", leaveSharedMode);
+changeStudentButton.addEventListener("click", guarded(() => showSharedPicker()));
 
 function formatDate(key) {
   return localDate(key).toLocaleDateString("de-AT", {
@@ -825,7 +856,12 @@ saveTrips.addEventListener("click", async () => {
       });
     }
     saveStatus.textContent = "Änderungen gespeichert.";
-    showPortalToast("Änderungen gespeichert", "success");
+    if (state.mode === "shared") {
+      // Gemeinsamer Zugang: länger sichtbar, mit Sprung zum Fahrtenplan
+      showPortalToast("Änderungen gespeichert", "success", 8000, { label: "Änderungen prüfen", onClick: () => showSharedPlan() });
+    } else {
+      showPortalToast("Änderungen gespeichert", "success");
+    }
     await loadStudentPlan();
     renderTrips();
   } catch (error) {
@@ -884,6 +920,16 @@ async function restoreStudentSession() {
 
 portalBootRetry.addEventListener("click", () => {
   restoreStudentSession();
+});
+
+window.addEventListener("popstate", (event) => {
+  if (state.mode !== "shared") return;
+  if (!confirmLeaveEdit()) { pushView("portal", { studentId: state.studentId }); return; } // Bearbeiten nicht verlassen
+  const view = event.state?.view;
+  if (!view || !readSharedSession()) { leaveSharedMode(); return; }
+  if (view === "picker") showSharedPicker({ fromPop: true });
+  else if (view === "plan") showSharedPlan({ fromPop: true });
+  else if (view === "portal" && event.state.studentId) openSharedStudent(event.state.studentId, { fromPop: true });
 });
 
 setDefaultPeriod();

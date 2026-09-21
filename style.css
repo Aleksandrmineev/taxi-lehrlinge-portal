@@ -216,7 +216,7 @@ select { appearance: none; -webkit-appearance: none; padding-right: 38px; backgr
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  max-width: min(90vw, 330px);
+  max-width: min(92vw, 380px);
   padding: 15px 19px;
   border: 1px solid #9bdcc3;
   border-radius: 15px;
@@ -228,6 +228,10 @@ select { appearance: none; -webkit-appearance: none; padding-right: 38px; backgr
   animation: portal-toast-in .18s ease-out;
 }
 .portal-toast__icon::before { content: "✓"; color: #35b875; font-size: 20px; }
+.portal-toast__card { pointer-events: auto; }
+.portal-toast__action { flex: 0 0 auto; margin-left: 4px; padding: 8px 12px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 800; }
+.portal-toast__action:hover, .portal-toast__action:focus-visible { background: var(--accent-dark); outline: none; }
+.portal-toast__action[hidden] { display: none; }
 .portal-toast--error .portal-toast__card { border-color: #efb3b3; color: #a43b49; }
 .portal-toast--error .portal-toast__icon::before { content: "!"; color: #d65b68; }
 @keyframes portal-toast-in {
@@ -275,3 +279,12 @@ select { appearance: none; -webkit-appearance: none; padding-right: 38px; backgr
   .auth-icon svg { width: 20px; height: 20px; }
   .auth-link { font-size: 10.5px; }
 }
+
+/* Navigation bar (shared access): Zurück / Fahrtenplan / Start */
+.shared-nav { position: fixed; z-index: 900; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; gap: 4px; padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); background: rgba(255, 255, 255, .96); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 -8px 24px rgba(20, 47, 66, .06); }
+.shared-nav[hidden] { display: none; }
+.shared-nav button { flex: 1 1 0; max-width: 150px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px; border: 0; border-radius: 12px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 750; line-height: 1.2; -webkit-tap-highlight-color: transparent; }
+.shared-nav button[hidden] { display: none; }
+.shared-nav svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.shared-nav button:hover, .shared-nav button:focus-visible { color: var(--accent); background: var(--green); outline: none; }
+body.has-shared-nav .shell { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
