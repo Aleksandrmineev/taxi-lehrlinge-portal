@@ -619,7 +619,7 @@ function renderTrips() {
         <div class="trip-date"><strong>${weekday}</strong><small>${formatDate(date)}</small></div>
         <div class="trip-actions">
           <button class="trip-toggle ${outOpen ? (item.out ? "active" : "inactive") : "locked"}" data-date="${date}" data-direction="out" type="button" ${outOpen ? "" : "disabled"} title="${outOpen ? "Bis 03:00 änderbar" : "Änderungsfrist für die Hinfahrt abgelaufen"}">${outOpen ? (item.out ? "✓" : "×") : "🔒"} <span class="trip-label-long">Hin zu Zelstoff</span><span class="trip-label-short">Hin</span></button>
-          <button class="trip-toggle ${backOpen ? (item.back ? "active" : "inactive") : "locked"}" data-date="${date}" data-direction="back" type="button" ${backOpen ? "" : "disabled"} title="${backOpen ? "Bis 12:00 änderbar" : "Änderungsfrist für die Rückfahrt abgelaufen"}">${backOpen ? (item.back ? "✓" : "×") : "🔒"} <span class="trip-label-long">Zurück</span><span class="trip-label-short">Back</span></button>
+          <button class="trip-toggle ${backOpen ? (item.back ? "active" : "inactive") : "locked"}" data-date="${date}" data-direction="back" type="button" ${backOpen ? "" : "disabled"} title="${backOpen ? "Bis 12:00 änderbar" : "Änderungsfrist für die Rückfahrt abgelaufen"}">${backOpen ? (item.back ? "✓" : "×") : "🔒"} <span class="trip-label-long">Zurück</span><span class="trip-label-short">Rück</span></button>
         </div>
       </div>`;
   }).join("");
