@@ -50,8 +50,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .ghost { border: 1px solid var(--line); background: var(--card); color: var(--ink); }
 .reset-link { border: 1px solid var(--line); color: var(--accent); }
 .reset-link:hover { border-color: var(--accent); background: var(--green); }
-.reset-choice { border: 0; padding: 3px 0; background: transparent; color: var(--muted); font-size: 13px; text-align: left; }
-.reset-choice:hover { color: var(--accent); }
 body:has(.pin-reset-form:not([hidden]))::before { content: ""; position: fixed; z-index: 1199; inset: 0; background: rgba(24, 34, 45, .38); }
 .pin-reset-form { position: fixed; z-index: 1200; left: 50%; top: 50%; width: min(440px, calc(100% - 32px)); transform: translate(-50%, -50%); display: grid; gap: 10px; margin: 0; padding: 26px; border: 1px solid var(--line); border-radius: 22px; background: var(--card); box-shadow: 0 24px 80px rgba(20, 47, 66, .25); }
 .pin-reset-form::before { content: "PIN erstellen"; color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }

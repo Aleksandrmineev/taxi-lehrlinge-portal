@@ -26,7 +26,7 @@
     <meta name="twitter:title" content="Lehrlinge Portal · MurtalTaxi" />
     <meta name="twitter:description" content="Persönliches Portal für Lehrlinge zur Verwaltung der MurtalTaxi-Fahrten." />
     <meta name="twitter:image" content="https://taxi-lehrlinge-portal.vercel.app/assets/favicon/android-chrome-512x512.png" />
-    <link rel="stylesheet" href="./style.css?v=20260922-5" />
+    <link rel="stylesheet" href="./style.css?v=20260922-6" />
   </head>
   <body>
     <div id="portalBoot" class="portal-boot" role="status" aria-live="polite">
@@ -59,10 +59,6 @@
             <select id="resetStudentIdInput" autocomplete="username" required><option value="" disabled selected>Bitte wählen…</option></select>
             <input id="resetStudentIdFallbackInput" type="text" placeholder="Lehrling-ID" autocomplete="username" hidden />
           </div>
-          <div id="resetStudentPhoneField" hidden>
-            <label for="resetStudentPhoneInput">Telefon</label>
-            <input id="resetStudentPhoneInput" type="tel" inputmode="tel" autocomplete="tel" placeholder="+43 …" disabled required />
-          </div>
           <p class="muted reset-hint">Der SMS-Code wird an deine hinterlegte Telefonnummer gesendet.</p>
           <div id="resetStudentCodeField" hidden>
             <label for="resetStudentCodeInput">SMS-Code</label>
@@ -73,7 +69,6 @@
             <input id="resetStudentPinInput" type="password" inputmode="numeric" autocomplete="new-password" minlength="4" maxlength="4" pattern="[0-9]{4}" disabled required />
           </div>
           <button id="resetStudentButton" class="primary" type="submit">SMS-Code anfordern</button>
-          <button id="showStudentIdRecovery" class="reset-choice" type="button">ID vergessen?</button>
           <p id="resetStudentStatus" class="reset-status" aria-live="polite"></p>
           <p id="resetStudentHint" class="muted reset-hint">Zuerst SMS-Code anfordern. Danach Code und neuen PIN eingeben.</p>
           <p class="muted reset-hint">Telefonnummer ändern? Bitte Support kontaktieren.</p>
@@ -82,7 +77,7 @@
           <a class="auth-link" href="https://wa.me/4368181289405" target="_blank" rel="noopener"><span class="auth-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg></span><span class="auth-label">Support</span></a>
           <button id="showResetStudentButton" class="auth-link" type="button"><span class="auth-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 2-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></span><span class="auth-label">PIN erstellen</span></button>
           <button id="showHelpButton" class="auth-link" type="button"><span class="auth-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg></span><span class="auth-label">Hilfe</span></button>
-          <button id="installAppButton" data-install-app class="auth-link" type="button" hidden><span class="auth-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></span><span class="auth-label">Installieren</span></button>
+          <button id="installAppButton" data-install-app class="auth-link" type="button" hidden><span class="auth-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></span><span class="auth-label">App installieren</span></button>
         </div>
       </section>
 
@@ -97,7 +92,7 @@
           </section>
           <section>
             <h3>2. Eigenen PIN festlegen</h3>
-            <p>Gib den erhaltenen SMS-Code und einen eigenen vierstelligen PIN ein. Danach meldest du dich mit deiner Lehrling-ID und diesem PIN an. Der Browser kann deinen Zugang anschließend speichern.</p>
+            <p>Gib den erhaltenen SMS-Code und einen eigenen vierstelligen PIN ein. Danach meldest du dich mit deinem Namen und diesem PIN an. Der Browser kann deinen Zugang anschließend speichern.</p>
           </section>
           <section>
             <h3>3. Dein Fahrtenplan</h3>
@@ -109,7 +104,7 @@
           </section>
           <section>
             <h3>5. Rechte und Sicherheit</h3>
-            <p>Lehrlinge können mit ihrer ID und ihrem PIN ihren eigenen Plan bearbeiten. Während der Testphase gibt es außerdem den gemeinsamen Zugang, mit dem jeder Plan bearbeitet werden kann. Autorisierte Fahrer können einen Plan im Ausnahmefall korrigieren – zum Beispiel, wenn ein Lehrling das Portal nicht verwendet oder eine Änderung auf anderem Weg mitteilt. Jede Person hat eine eigene ID. Die PIN wird nicht direkt gespeichert, sondern nur als Hashwert. Auch die Administration kann deine PIN nicht auslesen.</p>
+            <p>Lehrlinge können mit ihrem Namen und ihrem PIN ihren eigenen Plan bearbeiten. Während der Testphase gibt es außerdem den gemeinsamen Zugang, mit dem jeder Plan bearbeitet werden kann. Autorisierte Fahrer können einen Plan im Ausnahmefall korrigieren – zum Beispiel, wenn ein Lehrling das Portal nicht verwendet oder eine Änderung auf anderem Weg mitteilt. Die PIN wird nicht direkt gespeichert, sondern nur als Hashwert. Auch die Administration kann deine PIN nicht auslesen.</p>
           </section>
           <section>
             <h3>6. PIN erstellen oder zurücksetzen</h3>
@@ -252,6 +247,6 @@
       </div>
     </div>
     <script src="./pwa-install.js?v=20260912-1" defer></script>
-    <script src="./app.js?v=20260922-4"></script>
+    <script src="./app.js?v=20260922-5"></script>
   </body>
 </html>

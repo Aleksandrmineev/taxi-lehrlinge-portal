@@ -36,15 +36,12 @@ const resetStudentButton = document.getElementById("resetStudentButton");
 const resetStudentIdInput = document.getElementById("resetStudentIdInput");
 const resetStudentIdFallbackInput = document.getElementById("resetStudentIdFallbackInput");
 const resetStudentIdField = document.getElementById("resetStudentIdField");
-const resetStudentPhoneInput = document.getElementById("resetStudentPhoneInput");
-const resetStudentPhoneField = document.getElementById("resetStudentPhoneField");
 const resetStudentCodeInput = document.getElementById("resetStudentCodeInput");
 const resetStudentPinInput = document.getElementById("resetStudentPinInput");
 const resetStudentCodeField = document.getElementById("resetStudentCodeField");
 const resetStudentPinField = document.getElementById("resetStudentPinField");
 const resetStudentHint = document.getElementById("resetStudentHint");
 const resetStudentStatus = document.getElementById("resetStudentStatus");
-const showStudentIdRecovery = document.getElementById("showStudentIdRecovery");
 const sharedTaxiInput = document.getElementById("sharedTaxiInput");
 const sharedPinInput = document.getElementById("sharedPinInput");
 const studentIdSelect = document.getElementById("studentIdSelect");
@@ -74,7 +71,6 @@ const helpDialog = document.getElementById("helpDialog");
 const showHelpButton = document.getElementById("showHelpButton");
 const closeHelpButton = document.getElementById("closeHelpButton");
 let portalToastTimer = null;
-let studentResetMode = "pin";
 
 function showPortalToast(message, type = "success", duration = 2600, action = null) {
   if (!portalToast || !portalToastText) return;
@@ -91,7 +87,6 @@ function showPortalToast(message, type = "success", duration = 2600, action = nu
 }
 
 function openStudentPinReset() {
-  studentResetMode = "pin";
   document.getElementById("loginForm").hidden = true;
   showResetStudentButton.hidden = true;
   studentPinResetForm.hidden = false;
@@ -101,8 +96,6 @@ function openStudentPinReset() {
   resetStudentIdField.hidden = false;
   resetStudentIdInput.disabled = false;
   resetStudentIdFallbackInput.disabled = false;
-  resetStudentPhoneField.hidden = true;
-  resetStudentPhoneInput.disabled = true;
   resetStudentCodeInput.value = "";
   resetStudentPinInput.value = "";
   resetStudentCodeInput.disabled = true;
@@ -112,28 +105,8 @@ function openStudentPinReset() {
   resetStudentButton.textContent = "SMS-Code anfordern";
   resetStudentStatus.textContent = "";
   resetStudentStatus.className = "reset-status";
-  showStudentIdRecovery.hidden = false;
   resetStudentHint.textContent = "Namen wählen, dann SMS-Code anfordern. Danach Code und neuen PIN eingeben.";
   activeResetIdEl().focus();
-}
-
-function openStudentIdRecovery() {
-  studentResetMode = "id";
-  resetStudentIdField.hidden = true;
-  resetStudentIdInput.disabled = true;
-  resetStudentIdFallbackInput.disabled = true;
-  resetStudentPhoneField.hidden = false;
-  resetStudentPhoneInput.disabled = false;
-  resetStudentPhoneInput.value = "";
-  resetStudentCodeInput.disabled = true;
-  resetStudentPinInput.disabled = true;
-  resetStudentCodeField.hidden = true;
-  resetStudentPinField.hidden = true;
-  resetStudentButton.textContent = "SMS-Code anfordern";
-  resetStudentStatus.textContent = "";
-  resetStudentHint.textContent = "Die SMS enthält deine Lehrling-ID und den SMS-Code.";
-  showStudentIdRecovery.hidden = true;
-  resetStudentPhoneInput.focus();
 }
 
 function closeStudentPinReset() {
@@ -143,7 +116,6 @@ function closeStudentPinReset() {
   resetStudentStatus.textContent = "";
   resetStudentIdInput.disabled = false;
   resetStudentIdFallbackInput.disabled = false;
-  resetStudentPhoneInput.disabled = true;
 }
 const periodFrom = document.getElementById("periodFrom");
 const periodTo = document.getElementById("periodTo");
@@ -720,7 +692,6 @@ function setDefaultPeriod() {
 }
 
 showResetStudentButton.addEventListener("click", openStudentPinReset);
-showStudentIdRecovery.addEventListener("click", openStudentIdRecovery);
 closeResetStudentButton.addEventListener("click", closeStudentPinReset);
 showHelpButton.addEventListener("click", () => helpDialog.showModal());
 closeHelpButton.addEventListener("click", () => helpDialog.close());
@@ -732,42 +703,28 @@ studentPinResetForm.addEventListener("submit", async (event) => {
   resetStudentButton.classList.add("is-saving");
   try {
     const requestingCode = resetStudentCodeInput.disabled;
-    const action = requestingCode ? (studentResetMode === "id" ? "student_id_request" : "student_pin_request") : "student_pin_reset";
-    const payload = { action };
-    if (requestingCode && studentResetMode === "id") payload.phone = resetStudentPhoneInput.value.trim();
-    if (studentResetMode === "pin" || !requestingCode) payload.studentId = currentResetId();
+    const action = requestingCode ? "student_pin_request" : "student_pin_reset";
+    const payload = { action, studentId: currentResetId() };
     if (!requestingCode) {
       payload.code = resetStudentCodeInput.value.trim();
       payload.pin = resetStudentPinInput.value;
     }
     const result = await apiPost(payload);
-    if (action === "student_pin_request" || action === "student_id_request") {
+    if (action === "student_pin_request") {
       resetStudentCodeInput.disabled = false;
       resetStudentPinInput.disabled = false;
       resetStudentCodeField.hidden = false;
       resetStudentPinField.hidden = false;
-      if (studentResetMode === "id") {
-        resetStudentPhoneField.hidden = true;
-        resetStudentPhoneInput.disabled = true;
-        resetStudentIdField.hidden = false;
-        resetStudentIdInput.disabled = false;
-        resetStudentIdFallbackInput.disabled = false;
-        resetStudentIdInput.value = "";
-        resetStudentIdFallbackInput.value = "";
-        resetStudentHint.textContent = "Namen (laut SMS) wählen, SMS-Code eingeben und neuen PIN festlegen.";
-      } else {
-        resetStudentIdField.hidden = true;
-        resetStudentIdInput.disabled = true;
-        resetStudentIdFallbackInput.disabled = true;
-        resetStudentHint.textContent = "SMS-Code eingeben und neuen PIN festlegen.";
-      }
+      resetStudentIdField.hidden = true;
+      resetStudentIdInput.disabled = true;
+      resetStudentIdFallbackInput.disabled = true;
+      resetStudentHint.textContent = "SMS-Code eingeben und neuen PIN festlegen.";
       resetStudentButton.textContent = "PIN ersetzen";
       const sentMessage = "SMS-Code wurde an " + (result.maskedPhone || "die hinterlegte Nummer") + " gesendet.";
       resetStudentStatus.textContent = sentMessage;
       resetStudentStatus.className = "reset-status is-success";
       showPortalToast(sentMessage, "success");
-      if (studentResetMode === "id") activeResetIdEl().focus();
-      else resetStudentCodeInput.focus();
+      resetStudentCodeInput.focus();
     } else {
       const recoveredStudentId = currentResetId();
       await loginStudent(recoveredStudentId, resetStudentPinInput.value);
