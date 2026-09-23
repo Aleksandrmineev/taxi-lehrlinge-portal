@@ -28,7 +28,7 @@
     <meta name="twitter:title" content="Lehrlinge Portal · MurtalTaxi" />
     <meta name="twitter:description" content="Persönliches Portal für Lehrlinge zur Verwaltung der MurtalTaxi-Fahrten." />
     <meta name="twitter:image" content="https://taxi-lehrlinge-portal.vercel.app/assets/favicon/android-chrome-512x512.png" />
-    <link rel="stylesheet" href="./style.css?v=20260922-7" />
+    <link rel="stylesheet" href="./style.css?v=20260923-1" />
   </head>
   <body>
     <div id="portalBoot" class="portal-boot" role="status" aria-live="polite">
@@ -229,6 +229,14 @@
           </div>
         </details>
 
+        <details id="changesDetails" class="info-details">
+          <summary>Änderungen</summary>
+          <div class="info-content">
+            <p class="trip-help muted">Wer hat deinen Fahrtenplan wann geändert (letzte zwei Monate, neueste zuerst).</p>
+            <div id="changesList" class="changes-list"></div>
+          </div>
+        </details>
+
         <div class="portal-footer">
           <a class="support-link ghost" href="https://wa.me/4368181289405" target="_blank" rel="noopener"><svg class="whatsapp-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8.2 7.8c.2-.4.5-.5.9-.5h.6c.2 0 .4.2.5.4l.7 1.7c.1.3.1.5-.1.7l-.5.7c.6 1 1.4 1.8 2.5 2.4l.7-.5c.2-.2.5-.2.7-.1l1.7.7c.3.1.4.3.4.5v.6c0 .4-.2.7-.5.9-.5.3-1.2.4-1.8.2-2.1-.6-.6-4.8-3.2-5.6-5.3-.3-.8-.2-1.7.1-2.3Z"/></svg>Support</a>
           <button id="installAppButtonPortal" data-install-app class="ghost install-app-button" type="button" hidden><svg class="install-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 16v3h14v-3" /></svg><span>App installieren</span></button>
@@ -249,6 +257,6 @@
       </div>
     </div>
     <script src="./pwa-install.js?v=20260912-1" defer></script>
-    <script src="./app.js?v=20260922-5"></script>
+    <script src="./app.js?v=20260923-1"></script>
   </body>
 </html>

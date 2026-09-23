@@ -289,3 +289,8 @@ select { appearance: none; -webkit-appearance: none; padding-right: 38px; backgr
 .shared-nav svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .shared-nav button:hover, .shared-nav button:focus-visible { color: var(--accent); background: var(--green); outline: none; }
 body.has-shared-nav .shell { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+/* Block „Änderungen“: Protokoll des eigenen Fahrtenplans */
+.changes-list { display: grid; gap: 6px; max-height: 320px; overflow-y: auto; }
+.change-item { padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+.change-text { color: var(--ink); font-size: 14px; font-weight: 700; }
+.change-item small { color: var(--muted); font-size: 12px; }

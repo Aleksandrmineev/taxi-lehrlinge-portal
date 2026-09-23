@@ -267,6 +267,7 @@ async function loadStudentPlan() {
   scheduleData = { items: Object.fromEntries((result.items || []).map((item) => [item.date, item])) };
   state.trips = {};
   state.changed.clear();
+  refreshChanges();
   if (result.student) {
     document.getElementById("studentName").textContent = result.student.name;
     document.getElementById("studentRoute").textContent = result.student.route ? `Route ${result.student.route}` : "—";
@@ -329,6 +330,47 @@ async function sharedApi(path, { method = "GET", query = {}, body } = {}) {
   if (!response.ok || data.ok === false) throw new Error(data.error || "API-Fehler");
   return data;
 }
+
+/* ===== Änderungsprotokoll des eigenen Fahrtenplans (Block „Änderungen“) ===== */
+// var + Suche im DOM: loadStudentPlan (weiter oben) darf refreshChanges schon vor dieser Stelle aufrufen.
+var changesFor = ""; // für welchen Lehrling die Liste geladen ist
+function changesEl(id) { return document.getElementById(id); }
+
+function formatChangeTime(iso) {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString("de-AT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+async function loadChanges() {
+  const key = state.mode + ":" + state.studentId;
+  if (changesFor === key) return;
+  changesFor = key;
+  const changesList = changesEl("changesList");
+  changesList.innerHTML = '<p class="muted">Wird geladen…</p>';
+  try {
+    const result = state.mode === "shared"
+      ? await sharedApi("plan-log", { query: { studentId: state.studentId } })
+      : await apiGet({ fn: "student_plan_log", studentToken: state.token });
+    if (changesFor !== key) return;
+    const entries = result.entries || [];
+    changesList.innerHTML = entries.length ? entries.map((entry) => {
+      const who = state.mode === "student" && entry.channel === "student" ? "Du (eigenes Konto)" : entry.actor;
+      return `<div class="change-item"><div class="change-text">${escapeText(entry.text)}</div><small>${escapeText(formatChangeTime(entry.at))} · ${escapeText(who)}</small></div>`;
+    }).join("") : '<p class="muted">Noch keine Änderungen.</p>';
+  } catch (_) {
+    if (changesFor !== key) return;
+    changesFor = "";
+    changesList.innerHTML = '<p class="muted">Änderungen gerade nicht erreichbar. Bitte später erneut öffnen.</p>';
+  }
+}
+
+// Nach dem Speichern / Lehrlingswechsel neu laden, aber nur wenn der Block offen ist.
+function refreshChanges() {
+  changesFor = "";
+  if (changesEl("changesDetails")?.open) loadChanges();
+}
+
+changesEl("changesDetails").addEventListener("toggle", (event) => { if (event.target.open) loadChanges(); });
 
 function tripStatus(item) {
   return item.out && item.back ? "both" : item.out ? "out" : item.back ? "back" : "none";
