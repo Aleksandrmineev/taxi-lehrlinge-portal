@@ -24,7 +24,16 @@
 
   buttons.forEach((button) => button.addEventListener("click", async () => {
     if (!deferredPrompt) {
+      // Kein Installationsdialog verfügbar (iPhone, oder auf Android schon einmal abgebrochen):
+      // Anleitung direkt beim Abschnitt „App installieren“ öffnen.
       document.getElementById("showHelpButton")?.click();
+      const section = document.getElementById("helpInstall");
+      if (section) {
+        section.classList.add("help-highlight");
+        const content = section.closest(".help-dialog__content");
+        if (content) content.scrollTop += section.getBoundingClientRect().top - content.getBoundingClientRect().top;
+        setTimeout(() => section.classList.remove("help-highlight"), 2500);
+      }
       return;
     }
     deferredPrompt.prompt();

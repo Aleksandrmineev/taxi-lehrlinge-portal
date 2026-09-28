@@ -133,6 +133,8 @@ select { appearance: none; -webkit-appearance: none; padding-right: 38px; backgr
 .help-dialog__content section { width: 100%; max-width: 100%; min-width: 0; padding-top: 12px; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
 .help-dialog__content h3 { margin: 0 0 4px; font-size: 15px; }
 .help-dialog__content p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.help-dialog__content p + p { margin-top: 6px; }
+.help-dialog__content section.help-highlight { border-radius: 12px; background: var(--green); box-shadow: 0 0 0 8px var(--green); transition: background .4s, box-shadow .4s; }
 .help-video video { display: block; width: 100%; max-width: 100%; min-width: 0; height: auto; max-height: 52vh; object-fit: contain; border-radius: 12px; background: #0f171b; }
 .section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
 .period-details { margin-bottom: 14px; }

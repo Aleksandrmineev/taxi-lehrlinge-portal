@@ -28,7 +28,7 @@
     <meta name="twitter:title" content="Lehrlinge Portal · MurtalTaxi" />
     <meta name="twitter:description" content="Persönliches Portal für Lehrlinge zur Verwaltung der MurtalTaxi-Fahrten." />
     <meta name="twitter:image" content="https://taxi-lehrlinge-portal.vercel.app/assets/favicon/android-chrome-512x512.png" />
-    <link rel="stylesheet" href="./style.css?v=20260923-1" />
+    <link rel="stylesheet" href="./style.css?v=20260928-1" />
   </head>
   <body>
     <div id="portalBoot" class="portal-boot" role="status" aria-live="polite">
@@ -116,9 +116,13 @@
             <h3>Wichtig</h3>
             <p>Das Portal bündelt deinen Abholplan an einer Stelle. Prüfe deine Änderungen rechtzeitig, damit die Fahrer den aktuellen Stand sehen können.</p>
           </section>
-          <section>
+          <section id="helpInstall">
             <h3>App installieren</h3>
-            <p>Wenn dein Browser die Schaltfläche <strong>App installieren</strong> anzeigt, kannst du das Portal direkt auf dem Startbildschirm speichern. Auf iPhone oder iPad: im Browser <strong>Teilen</strong> öffnen und <strong>Zum Home-Bildschirm</strong> wählen.</p>
+            <p>Wenn dein Browser die Schaltfläche <strong>App installieren</strong> anzeigt, kannst du das Portal direkt auf dem Startbildschirm speichern.</p>
+            <p><strong>Android (Chrome):</strong> oben rechts das Menü <strong>⋮</strong> öffnen und <strong>App installieren</strong> bzw. <strong>Zum Startbildschirm hinzufügen</strong> wählen.<br>
+            <strong>Samsung Internet:</strong> Menü <strong>≡</strong> → <strong>Seite hinzufügen zu</strong> → <strong>Startbildschirm</strong>.<br>
+            <strong>iPhone oder iPad:</strong> im Browser <strong>Teilen</strong> öffnen und <strong>Zum Home-Bildschirm</strong> wählen.</p>
+            <p>Hast du den Link aus WhatsApp, Instagram o.&nbsp;Ä. geöffnet? Dann zuerst über das Menü <strong>Im Browser öffnen</strong> (Chrome bzw. Safari) wählen – in diesen Apps lässt sich nichts installieren.</p>
           </section>
           <section class="help-video">
             <h3>Kurze Anleitung</h3>
@@ -256,7 +260,7 @@
         <button id="portalToastAction" class="portal-toast__action" type="button" hidden></button>
       </div>
     </div>
-    <script src="./pwa-install.js?v=20260912-1" defer></script>
+    <script src="./pwa-install.js?v=20260928-1" defer></script>
     <script src="./app.js?v=20260923-1"></script>
   </body>
 </html>
