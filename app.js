@@ -211,6 +211,13 @@ function getWeekdays(fromKey, toKey) {
   return result;
 }
 
+// Stand eines Tages beim Laden (für baseOut/baseBack beim Speichern).
+function loadedTrip(date) {
+  const item = scheduleData?.items?.[date];
+  if (!item) return { out: true, back: true };
+  return { out: item.status === "both" || item.status === "out", back: item.status === "both" || item.status === "back" };
+}
+
 function ensureTrip(date) {
   if (!state.trips[date]) {
     const item = scheduleData?.items?.[date];
@@ -876,11 +883,18 @@ saveTrips.addEventListener("click", async () => {
         return;
       }
     } else {
-      await apiPost({
-        action: "student_plan_save",
-        studentToken: state.token,
-        rows: JSON.stringify(Object.entries(state.trips).map(([date, item]) => ({ date, out: item.out, back: item.back }))),
+      // Nur die geänderten Tage, mit dem Stand beim Laden: so überschreibt ein veralteter Bildschirm keine
+      // Änderungen, die inzwischen jemand anderes (Fahrer, Büro, anderes Gerät) gemacht hat.
+      const rows = [...state.changed].filter((date) => state.trips[date]).map((date) => {
+        const base = loadedTrip(date);
+        return { date, out: state.trips[date].out, back: state.trips[date].back, baseOut: base.out, baseBack: base.back };
       });
+      if (!rows.length) {
+        saveStatus.textContent = "Keine Änderungen vorhanden.";
+        showPortalToast("Keine Änderungen vorhanden", "error");
+        return;
+      }
+      await apiPost({ action: "student_plan_save", studentToken: state.token, rows: JSON.stringify(rows) });
     }
     saveStatus.textContent = "Änderungen gespeichert.";
     if (state.mode === "shared") {
