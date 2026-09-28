@@ -177,12 +177,18 @@ function viennaNow() {
   };
 }
 
+// Fristen wie auf dem Server (GAS lehrlingeCutoffOpen_): Hin bis 20:00 am Vortag, Zurück bis 11:00 am Fahrtag.
 function directionOpen(date, direction) {
   const now = viennaNow();
-  if (date > now.date) return true;
-  if (date < now.date) return false;
-  if (direction === "out") return now.hour < 3;
-  return now.hour < 12;
+  let deadlineDay = date;
+  if (direction === "out") {
+    const previous = new Date(`${date}T12:00:00Z`);
+    previous.setUTCDate(previous.getUTCDate() - 1);
+    deadlineDay = previous.toISOString().slice(0, 10);
+  }
+  if (deadlineDay > now.date) return true;
+  if (deadlineDay < now.date) return false;
+  return now.hour < (direction === "out" ? 20 : 11);
 }
 
 function dateVisible(date) {
@@ -660,8 +666,8 @@ function renderTrips() {
       <div class="trip-row">
         <div class="trip-date"><strong>${weekday}</strong><small>${formatDate(date)}</small></div>
         <div class="trip-actions">
-          <button class="trip-toggle ${outOpen ? (item.out ? "active" : "inactive") : "locked"}" data-date="${date}" data-direction="out" type="button" ${outOpen ? "" : "disabled"} title="${outOpen ? "Bis 03:00 änderbar" : "Änderungsfrist für die Hinfahrt abgelaufen"}">${outOpen ? (item.out ? "✓" : "×") : "🔒"} <span class="trip-label-long">Hin zu Zelstoff</span><span class="trip-label-short">Hin</span></button>
-          <button class="trip-toggle ${backOpen ? (item.back ? "active" : "inactive") : "locked"}" data-date="${date}" data-direction="back" type="button" ${backOpen ? "" : "disabled"} title="${backOpen ? "Bis 12:00 änderbar" : "Änderungsfrist für die Rückfahrt abgelaufen"}">${backOpen ? (item.back ? "✓" : "×") : "🔒"} <span class="trip-label-long">Zurück</span><span class="trip-label-short">Rück</span></button>
+          <button class="trip-toggle ${outOpen ? (item.out ? "active" : "inactive") : "locked"}" data-date="${date}" data-direction="out" type="button" ${outOpen ? "" : "disabled"} title="${outOpen ? "Bis 20:00 am Vortag änderbar" : "Änderungsfrist für die Hinfahrt abgelaufen"}">${outOpen ? (item.out ? "✓" : "×") : "🔒"} <span class="trip-label-long">Hin zu Zelstoff</span><span class="trip-label-short">Hin</span></button>
+          <button class="trip-toggle ${backOpen ? (item.back ? "active" : "inactive") : "locked"}" data-date="${date}" data-direction="back" type="button" ${backOpen ? "" : "disabled"} title="${backOpen ? "Bis 11:00 änderbar" : "Änderungsfrist für die Rückfahrt abgelaufen"}">${backOpen ? (item.back ? "✓" : "×") : "🔒"} <span class="trip-label-long">Zurück</span><span class="trip-label-short">Rück</span></button>
         </div>
       </div>`;
   }).join("");
